@@ -11,11 +11,11 @@
   "dependencies": {
     "express": "4.17.1",
     "kerberos": "1.1.4",
-    "parse": "2.19.0",
-    "parse-server": "4.5.0"
+    "parse": "^3.3.0",
+    "parse-server": "^4.5.0"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node --trace-warnings index.js",
     "lint": "eslint --cache ./cloud && eslint --cache index.js && eslint --cache ./spec",
     "lint-fix": "eslint --cache --fix ./cloud && eslint --cache --fix index.js && eslint --cache --fix ./spec",
     "test": "mongodb-runner start && jasmine",
@@ -35,7 +35,7 @@
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-promise": "4.2.1",
     "jasmine": "3.6.4",
-    "mongodb-runner": "4.8.1",
+    "mongodb-runner": "^2.2.0",
     "nyc": "15.1.0",
     "prettier": "2.2.1"
   }

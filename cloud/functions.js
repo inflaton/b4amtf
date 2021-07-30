@@ -1,14 +1,27 @@
-Parse.Cloud.define('hello', req => {
-  req.log.info(req);
-  return 'Hi';
-});
+const MASTER_KEY = { useMasterKey: true };
 
-Parse.Cloud.define('asyncFunction', async req => {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  req.log.info(req);
-  return 'Hi async';
-});
+Parse.Cloud.define('import', async request => {
+  const className = request.params.className;
+  const rows = request.params.results;
 
-Parse.Cloud.beforeSave('Test', () => {
-  throw new Parse.Error(9001, 'Saving test objects is not available.');
+  const MyClass = Parse.Object.extend(className);
+
+  const myClassObjects = [];
+  for (let i = 0; i < rows.length; i++) {
+    const myClassObject = new MyClass();
+
+    for (const column in rows[i]) {
+      myClassObject.set(column, rows[i][column]);
+    }
+
+    myClassObjects.push(myClassObject);
+  }
+
+  try {
+    await Parse.Object.saveAll(myClassObjects, MASTER_KEY);
+  } catch (e) {
+    throw new Error(`Import failed: ${e}`);
+  }
+
+  return `Successfully imported ${myClassObjects.length} rows into ${className} class`;
 });
