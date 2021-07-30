@@ -3,6 +3,7 @@
 
 const express = require('express');
 const ParseServer = require('parse-server').ParseServer;
+const ParseDashboard = require('parse-dashboard');
 const path = require('path');
 const args = process.argv || [];
 const test = args.some(arg => arg.includes('jasmine'));
@@ -52,6 +53,22 @@ const port = process.env.PORT || 1337;
 if (!test) {
   const api = new ParseServer(config);
   app.use(mountPath, api);
+
+  const options = { allowInsecureHTTP: true };
+
+  const dashboard = new ParseDashboard({
+    "apps": [
+      {
+        "serverURL": config.serverURL,
+        "appId": config.appId,
+        "masterKey": config.masterKey,
+        "appName": "Amituofo"
+      }
+    ]
+  }, options);
+
+  // make the Parse Dashboard available at /dashboard
+  app.use('/dashboard', dashboard);
 
   app.listen(port, function () {
     console.log('parse-server running on port ' + port + '.');
