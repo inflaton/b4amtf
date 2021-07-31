@@ -16,7 +16,8 @@ if (!databaseUri) {
 
 const config = {
   databaseURI: databaseUri || 'mongodb://localhost:27017/dev',
-  logLevel: "verbose",
+  // logLevel: "verbose",
+  logLevel: "info",
   cloud: process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
   appId: process.env.APP_ID || 'LL9oIdzIkmwl5xyowQQu0fTmXyUWfet9RuAzwHfj',
   masterKey: process.env.MASTER_KEY || 'R3S8PYQKuzeV4c8MUeO5ved46C50MEp56boDHW1O', //Add your master key here. Keep it secret!
