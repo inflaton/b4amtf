@@ -25,6 +25,13 @@ const processClassSession = async function (classSession) {
   }
 }
 
+const processUser = async function (user) {
+  logger.info(`processUser: ${JSON.stringify(
+    user
+  )}`);
+  user.set("password", "amituofo2021");
+}
+
 Parse.Cloud.define('import', async request => {
   const className = request.params.className;
   const rows = request.params.results;
@@ -43,6 +50,8 @@ Parse.Cloud.define('import', async request => {
       await processSubmodule(myClassObject);
     } else if (className === "ClassSession") {
       await processClassSession(myClassObject);
+    } else if (className === "_User") {
+      await processUser(myClassObject);
     }
 
     myClassObjects.push(myClassObject);

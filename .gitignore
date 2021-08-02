@@ -2,6 +2,7 @@
 logs
 *.log
 .vscode
+*.local
 
 # Runtime data
 pids

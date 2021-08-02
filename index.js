@@ -7,29 +7,48 @@ const ParseDashboard = require('parse-dashboard');
 const path = require('path');
 const args = process.argv || [];
 const test = args.some(arg => arg.includes('jasmine'));
+const NODE_ENV_DEV = "development";
 
+const nodeEnv = process.env.NODE_ENV || NODE_ENV_DEV;
+console.log(`nodeEnv: ${nodeEnv}`);
+process.env.NODE_ENV = nodeEnv;
+require('dotenv-flow').config();
 const databaseUri = process.env.DATABASE_URI || process.env.MONGODB_URI;
 
 if (!databaseUri) {
   console.log('DATABASE_URI not specified, falling back to localhost.');
 }
 
+console.log(`process.env.LOG_LEVEL: ${process.env.LOG_LEVEL}`);
+const emailAdapter = require('./config/emailAdapter');
 const config = {
+  logLevel: process.env.LOG_LEVEL || "info",
   databaseURI: databaseUri || 'mongodb://localhost:27017/dev',
-  // logLevel: "verbose",
-  logLevel: "info",
-  cloud: process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
-  appId: process.env.APP_ID || 'LL9oIdzIkmwl5xyowQQu0fTmXyUWfet9RuAzwHfj',
-  masterKey: process.env.MASTER_KEY || 'R3S8PYQKuzeV4c8MUeO5ved46C50MEp56boDHW1O', //Add your master key here. Keep it secret!
-  serverURL: process.env.SERVER_URL || 'http://localhost:1337/parse', // Don't forget to change to https if needed
-  publicServerURL: process.env.PUBLIC_SERVER_URL || 'http://localhost:1337/parse',
+  cloud: __dirname + '/cloud/main.js',
+  appId: process.env.VUE_APP_PARSE_APP_ID || 'LL9oIdzIkmwl5xyowQQu0fTmXyUWfet9RuAzwHfj',
+  masterKey: process.env.VUE_APP_PARSE_JS_KEY || '3bOlk6siyv8D6VTxrKK053UOwHx2G9LMqZeITndb',
+  serverURL: process.env.SERVER_URL || 'http://localhost:1337/parse',
   liveQuery: {
-    classNames: ['Posts', 'Comments'], // List of classes to support for query subscriptions
+    classNames: ['Class', 'ClassSession'], // List of classes to support for query subscriptions
   },
+
+  // Enable email verification
+  verifyUserEmails: true,
+
+  // Set email verification token validity to 2 hours
+  emailVerifyTokenValidityDuration: 2 * 60 * 60,
+  preventLoginWithUnverifiedEmail: true,
+  publicServerURL: process.env.PUBLIC_SERVER_URL || 'http://localhost:8080/parse',
+  appName: 'Amitabha 香光庄严',
+
+  // Set email adapter
+  emailAdapter
 };
 // Client-keys like the javascript key or the .NET key are not necessary with parse-server
 // If you wish you require them, you can set them as options in the initialization above:
 // javascriptKey, restAPIKey, dotNetKey, clientKey
+
+console.log(`config: ${JSON.stringify(config)}`);
 
 const app = express();
 
