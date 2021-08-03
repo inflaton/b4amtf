@@ -25,8 +25,9 @@ const config = {
   logLevel: process.env.LOG_LEVEL || "info",
   databaseURI: databaseUri || 'mongodb://localhost:27017/dev',
   cloud: __dirname + '/cloud/main.js',
-  appId: process.env.VUE_APP_PARSE_APP_ID || 'LL9oIdzIkmwl5xyowQQu0fTmXyUWfet9RuAzwHfj',
-  masterKey: process.env.VUE_APP_PARSE_JS_KEY || '3bOlk6siyv8D6VTxrKK053UOwHx2G9LMqZeITndb',
+  appId: process.env.VUE_APP_PARSE_APP_ID || 'NRXUJ7VoDl3pho3QihRUnN6JoRdAOPiLnV5A0vifIwE',
+  masterKey: process.env.PARSE_MASTER_KEY || 'wVuwX7XYH0E2X9fmMXoxyigZI3eEzJDnAGG3B8AI4lA',
+  javascriptKey: process.env.VUE_APP_PARSE_JS_KEY || '1EmGj7cdldzyzoYEWTiaeoWwMt5q7dOXWsK4r1Q03ic',
   serverURL: process.env.SERVER_URL || 'http://localhost:1337/parse',
   liveQuery: {
     classNames: ['Class', 'ClassSession'], // List of classes to support for query subscriptions
