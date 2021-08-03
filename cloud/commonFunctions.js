@@ -17,7 +17,7 @@ const requireRole = (userWithRoles, role) => {
   }
 };
 
-const reportPracticeCountV2 = async function(
+const reportPracticeCountV2 = async function (
   user,
   practiceId,
   reportedAt,
@@ -149,7 +149,7 @@ const reportPracticeCountV2 = async function(
   };
 };
 
-const updateAttendanceV2 = async function(
+const updateAttendanceV2 = async function (
   user,
   classId,
   sessionId,
@@ -202,7 +202,7 @@ const updateAttendanceV2 = async function(
   return result;
 };
 
-const getDatesFromCsvHeader = function(csvHeader, isRxl, isPractice) {
+const getDatesFromCsvHeader = function (csvHeader, isRxl, isPractice) {
   var key,
     year,
     yearStr,
@@ -241,7 +241,7 @@ const getDatesFromCsvHeader = function(csvHeader, isRxl, isPractice) {
   return mapDates;
 };
 
-const prepareStudyReportGeneration = async function(parseClass, formalStudy) {
+const prepareStudyReportGeneration = async function (parseClass, formalStudy) {
   var query = parseClass
     .relation(formalStudy ? "sessions" : "selfStudySessions")
     .query();
@@ -283,7 +283,7 @@ const prepareStudyReportGeneration = async function(parseClass, formalStudy) {
   return { csvHeader, mapDates };
 };
 
-const prepareReportGeneration = async function(
+const prepareReportGeneration = async function (
   parseClass,
   isPractice,
   selfStudy,
@@ -316,9 +316,8 @@ const prepareReportGeneration = async function(
     const satElements = toLocalDateString(saturday).split(re);
     const sunElements = toLocalDateString(sunday).split(re);
     const newCsvHeader = isPractice
-      ? `${monElements[1]}${
-          monElements[0] != sunElements[0] ? monElements[0].toUpperCase() : ""
-        }-${sunElements[1]}${sunElements[0].toUpperCase()}`
+      ? `${monElements[1]}${monElements[0] != sunElements[0] ? monElements[0].toUpperCase() : ""
+      }-${sunElements[1]}${sunElements[0].toUpperCase()}`
       : `${satElements[1]}-${satElements[0].toUpperCase()}`;
 
     if (!lastMonth) {
@@ -351,14 +350,14 @@ const prepareReportGeneration = async function(
   return { csvHeader, mapDates };
 };
 
-const formatCount = function(count) {
+const formatCount = function (count) {
   if (count != undefined) {
     return count.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
   }
   return "";
 };
 
-const formatMinutes = function(minutes) {
+const formatMinutes = function (minutes) {
   if (minutes != undefined) {
     minutes = (minutes / 60).toFixed(2);
     return minutes.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
@@ -366,7 +365,7 @@ const formatMinutes = function(minutes) {
   return "";
 };
 
-const toLocalDateString = function(date) {
+const toLocalDateString = function (date) {
   const options = {
     year: "numeric",
     month: "short",
@@ -375,7 +374,7 @@ const toLocalDateString = function(date) {
   return date.toLocaleDateString("en-UK", options);
 };
 
-const sendEmailViaSendGrid = async function(toEmail, ccEmail, subject, body) {
+const sendEmailViaSendGrid = async function (toEmail, ccEmail, subject, body) {
   logger.info(`sending email to: ${toEmail} cc: ${ccEmail} using SendGrid`);
   const sgMail = require("@sendgrid/mail");
 
@@ -399,7 +398,7 @@ const sendEmailViaSendGrid = async function(toEmail, ccEmail, subject, body) {
   }
 };
 
-const sendEmailViaOutlook = async function(toEmail, ccEmail, subject, body) {
+const sendEmailViaOutlook = async function (toEmail, ccEmail, subject, body) {
   logger.info(`sending email to: ${toEmail} cc: ${ccEmail} using Outlook`);
 
   const mail = require("nodejs-nodemailer-outlook");
@@ -420,7 +419,7 @@ const sendEmailViaOutlook = async function(toEmail, ccEmail, subject, body) {
   return `sent email to ${toEmail}`;
 };
 
-const sendEmail = async function(toEmail, ccEmail, subject, body) {
+const sendEmail = async function (toEmail, ccEmail, subject, body) {
   toEmail = toEmail.toLowerCase();
   if (ccEmail) {
     ccEmail = ccEmail.toLowerCase();
@@ -431,7 +430,7 @@ const sendEmail = async function(toEmail, ccEmail, subject, body) {
   return await sendEmailViaSendGrid(toEmail, ccEmail, subject, body);
 };
 
-const getLastWeek = function(addGmt8Offset) {
+const getLastWeek = function (addGmt8Offset) {
   var curr = new Date();
   var sunday = curr.getDate() - curr.getDay(); // Sunday is the day of the month - the day of the week
   if (curr.getDay() == 0) {
@@ -455,7 +454,7 @@ const getLastWeek = function(addGmt8Offset) {
   return { monday, sunday };
 };
 
-const loadClassWithTeams = async function(classId) {
+const loadClassWithTeams = async function (classId) {
   var query = new Parse.Query("Class");
   query.equalTo("objectId", classId);
   const parseClass = await query.first();
@@ -493,7 +492,7 @@ const loadClassWithTeams = async function(classId) {
   return classInfo;
 };
 
-const loadStudentAttendanceV2 = async function(userId, classSession) {
+const loadStudentAttendanceV2 = async function (userId, classSession) {
   var result = {};
   if (classSession) {
     var query = new Parse.Query("UserSessionAttendance");
@@ -508,15 +507,14 @@ const loadStudentAttendanceV2 = async function(userId, classSession) {
   }
 
   logger.info(
-    `loadStudentAttendanceV2 - userId: ${userId} sessionId: ${
-      classSession ? classSession._getId() : undefined
+    `loadStudentAttendanceV2 - userId: ${userId} sessionId: ${classSession ? classSession._getId() : undefined
     } result: ${JSON.stringify(result)}`
   );
 
   return result;
 };
 
-const loadUserMissedReportingStates = async function(
+const loadUserMissedReportingStates = async function (
   parseUser,
   parseClass,
   lastSession,
@@ -564,7 +562,7 @@ const loadUserMissedReportingStates = async function(
   return results;
 };
 
-const remindClassReporting = async function(classId) {
+const remindClassReporting = async function (classId) {
   const lastWeek = getLastWeek(true);
   const lastWeekForEmail = getLastWeek(false);
   logger.info(
@@ -621,7 +619,7 @@ const remindClassReporting = async function(classId) {
   return { lastWeek, lastWeekForEmail, emailsSent };
 };
 
-const updateUserStudyRecord = async function(user, pathname, userStudyRecord) {
+const updateUserStudyRecord = async function (user, pathname, userStudyRecord) {
   requireAuth(user);
 
   const result = {};
@@ -662,6 +660,72 @@ const updateUserStudyRecord = async function(user, pathname, userStudyRecord) {
   return result;
 };
 
+const sendVerificationEmail = async function () {
+  const date = new Date();
+  const timeNow = date.getTime();
+
+  logger.info("sendVerificationEmail started at " + date);
+  try {
+    const intervalOfTime = 7 * DAY_IN_MS; // the time set is 7 days in milliseconds
+    const timeThen = timeNow + intervalOfTime;
+
+    const expiredDate = new Date();
+    expiredDate.setTime(timeThen);
+
+    let query = new Parse.Query(Parse.User);
+    query.equalTo("emailVerified", false);
+    let results = await query.find(MASTER_KEY);
+
+    for (let i = 0; i < results.length; i++) {
+      const user = results[i];
+      if (user.get("createdAt") < expiredDate) {
+        if (user.get("verificationEmailRequested") === "confirmEmail") {
+          const email = user.get("email");
+          if (email) {
+            let newEmail = email.trim();
+            if (newEmail === email) {
+              newEmail = email + " ";
+            }
+            user.set("email", newEmail);
+            user.unset("verificationEmailRequested");
+            await user.save(null, MASTER_KEY);
+            logger.info(`sent verification email to [${email}]`);
+          }
+        }
+      } else {
+        user
+          .destroy(MASTER_KEY)
+          .then(destroyed => {
+            logger.info(
+              "Successfully destroyed object" + JSON.stringify(destroyed)
+            );
+          })
+          .catch(error => {
+            logger.info("Error: " + error.code + " - " + error.message);
+          });
+      }
+    }
+
+    query = new Parse.Query(Parse.User);
+    query.equalTo("verificationEmailRequested", "passwordReset");
+    results = await query.find(MASTER_KEY);
+
+    for (let i = 0; i < results.length; i++) {
+      const user = results[i];
+      const email = user.get("email");
+      await Parse.User.requestPasswordReset(email);
+      user.unset("verificationEmailRequested");
+      await user.save(null, MASTER_KEY);
+      logger.info(`sent password reset email to [${email}]`);
+    }
+  } catch (e) {
+    logger.info("Exception in sendVerificationEmail: " + JSON.stringify(e));
+    console.error(e);
+  }
+
+  logger.info("sendVerificationEmail finished at " + new Date());
+};
+
 module.exports = {
   requireAuth,
   requireRole,
@@ -677,5 +741,6 @@ module.exports = {
   getLastWeek,
   loadStudentAttendanceV2,
   updateUserStudyRecord,
+  sendVerificationEmail,
   DAY_IN_MS
 };
