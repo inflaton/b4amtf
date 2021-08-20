@@ -40,7 +40,7 @@ const config = {
   emailVerifyTokenValidityDuration: 2 * 60 * 60,
   preventLoginWithUnverifiedEmail: true,
   publicServerURL: process.env.PUBLIC_SERVER_URL || 'http://localhost:8080/parse',
-  appName: 'Amitabha 香光庄严',
+  appName: `Amitabha-${nodeEnv}`,
 
   // Set email adapter
   emailAdapter
@@ -83,7 +83,7 @@ if (!test) {
         "serverURL": config.serverURL,
         "appId": config.appId,
         "masterKey": config.masterKey,
-        "appName": "Amituofo"
+        "appName": config.appName
       }
     ]
   }, options);

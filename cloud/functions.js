@@ -65,3 +65,40 @@ Parse.Cloud.define('import', async request => {
 
   return `Successfully imported ${myClassObjects.length} rows into ${className} class`;
 });
+
+
+Parse.Cloud.define('createModule', async request => {
+  const name = request.params.name;
+  const url = request.params.url;
+  const query = new Parse.Query("Module");
+  query.descending("index");
+  let module = await query.first();
+  const index = module ? module.get("index") + 1 : 1;
+
+  logger.info(`creating module with name: ${name} url: ${url} index: ${index}`);
+
+  module = new Parse.Object("Module");
+  module.set("name", name);
+  module.set("url", url);
+  module.set("index", index);
+  module = await module.save();
+
+  return {id : module.id, index};
+});
+
+Parse.Cloud.define('createSubmodule', async request => {
+  const index = request.params.index;
+  const name = request.params.name;
+  const url = request.params.url;
+  const moduleId = request.params.moduleId;
+  logger.info(`creating submodule with index: ${index} name: ${name} url: ${url} moduleId: ${moduleId}`);
+
+  let submodule = new Parse.Object("Submodule");
+  submodule.set("name", name);
+  submodule.set("url", url);
+  submodule.set("index", index);
+  submodule.set("moduleId", moduleId);
+  submodule = await submodule.save();
+
+  return submodule.id;
+});
