@@ -1,5 +1,6 @@
 /* eslint-disable no-await-in-loop */
 const MASTER_KEY = { useMasterKey: true };
+const MAX_QUERY_COUNT = 3000;
 const logger = require("parse-server").logger;
 
 const processSubmodule = async function (submodule) {
@@ -70,14 +71,35 @@ Parse.Cloud.define('import', async request => {
 Parse.Cloud.define('createModule', async request => {
   const name = request.params.name;
   const url = request.params.url;
-  const query = new Parse.Query("Module");
-  query.descending("index");
-  let module = await query.first();
-  const index = module ? module.get("index") + 1 : 1;
+  const moduleId = request.params.moduleId;
+
+  let query = new Parse.Query("Module");
+  let module = undefined;
+  let index;
+
+  if (moduleId) {
+    query.equalTo("objectId", moduleId);
+    module = await query.first();
+  }
+
+  if (module) {
+    index = module ? module.get("index") : index;
+    query = new Parse.Query("Submodule");
+    query.equalTo("moduleId", moduleId);
+    const submodules = await query.limit(MAX_QUERY_COUNT).find();
+    for(const val of submodules) {
+      await val.destroy();
+    }
+  } else {
+    query = new Parse.Query("Module");
+    query.descending("index");
+    const lastModule = await query.first();
+    index = lastModule ? lastModule.get("index") + 1 : 1;
+    module = new Parse.Object("Module");
+  }
 
   logger.info(`creating module with name: ${name} url: ${url} index: ${index}`);
 
-  module = new Parse.Object("Module");
   module.set("name", name);
   module.set("url", url);
   module.set("index", index);
