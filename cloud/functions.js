@@ -84,12 +84,6 @@ Parse.Cloud.define('createModule', async request => {
 
   if (module) {
     index = module ? module.get("index") : index;
-    query = new Parse.Query("Submodule");
-    query.equalTo("moduleId", moduleId);
-    const submodules = await query.limit(MAX_QUERY_COUNT).find();
-    for(const val of submodules) {
-      await val.destroy();
-    }
   } else {
     query = new Parse.Query("Module");
     query.descending("index");
@@ -115,7 +109,14 @@ Parse.Cloud.define('createSubmodule', async request => {
   const moduleId = request.params.moduleId;
   logger.info(`creating submodule with index: ${index} name: ${name} url: ${url} moduleId: ${moduleId}`);
 
-  let submodule = new Parse.Object("Submodule");
+  const query = new Parse.Query("Submodule");
+  query.equalTo("moduleId", moduleId);
+  query.equalTo("index", index);
+  let submodule =  await query.first();
+  if(!submodule){
+    submodule = new Parse.Object("Submodule");
+  }
+
   submodule.set("name", name);
   submodule.set("url", url);
   submodule.set("index", index);
