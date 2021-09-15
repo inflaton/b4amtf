@@ -1,11 +1,11 @@
 const emailAdapter = {
     module: 'parse-smtp-template',
     options: {
-        port: process.env.MAILGUN_SMTP_PORT || 587,
-        host: process.env.MAILGUN_SMTP_SERVER || "smtp-mail.outlook.com",
-        user: process.env.MAILGUN_SMTP_LOGIN || process.env.OUTLOOK_USER,
-        password: process.env.MAILGUN_SMTP_PASSWORD || process.env.OUTLOOK_PASSWORD,
-        fromAddress: process.env.MAILGUN_SMTP_LOGIN || process.env.OUTLOOK_USER,
+        port: process.env.SMTP_PORT || 587,
+        host: process.env.SMTP_SERVER || "smtp-mail.outlook.com",
+        user: process.env.SMTP_LOGIN || process.env.OUTLOOK_USER,
+        password: process.env.SMTP_PASSWORD || process.env.OUTLOOK_PASSWORD,
+        fromAddress: process.env.SMTP_LOGIN || process.env.OUTLOOK_USER,
 
         multiTemplate: true,
         confirmTemplatePath: "views/templates/verification_email.html",
