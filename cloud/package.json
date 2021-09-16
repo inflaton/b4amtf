@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@sendgrid/mail": "*",
+    "nodejs-nodemailer-outlook": "^1.2.3"
+  }
+}
