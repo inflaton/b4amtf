@@ -3,19 +3,15 @@ const MASTER_KEY = { useMasterKey: true };
 const logger = require("parse-server").logger;
 
 const processSubmodule = async function (submodule) {
-  logger.info(`processSubmodule: ${JSON.stringify(
-    submodule
-  )}`);
+  logger.info(`processSubmodule: ${JSON.stringify(submodule)}`);
   const query = new Parse.Query("Module");
   query.equalTo("moduleId", submodule.get("moduleId"));
   const module = await query.first();
   submodule.set("moduleId", module.id);
-}
+};
 
 const processClassSession = async function (classSession) {
-  logger.info(`processClassSession: ${JSON.stringify(
-    classSession
-  )}`);
+  logger.info(`processClassSession: ${JSON.stringify(classSession)}`);
   const submodules = classSession.get("content").submodules;
   for (let i = 0; i < submodules.length; i++) {
     const query = new Parse.Query("Submodule");
@@ -23,16 +19,14 @@ const processClassSession = async function (classSession) {
     const submodule = await query.first();
     submodules[i] = submodule.id;
   }
-}
+};
 
 const processUser = async function (user) {
-  logger.info(`processUser: ${JSON.stringify(
-    user
-  )}`);
+  logger.info(`processUser: ${JSON.stringify(user)}`);
   user.set("password", "amituofo2021");
-}
+};
 
-Parse.Cloud.define('import', async request => {
+Parse.Cloud.define("import", async (request) => {
   if (!request.master) {
     return "master key required";
   }
@@ -69,8 +63,7 @@ Parse.Cloud.define('import', async request => {
   return `Successfully imported ${myClassObjects.length} rows into ${className} class`;
 });
 
-
-Parse.Cloud.define('createModule', async request => {
+Parse.Cloud.define("createModule", async (request) => {
   if (!request.master) {
     return "master key required";
   }
@@ -79,7 +72,7 @@ Parse.Cloud.define('createModule', async request => {
   const moduleId = request.params.moduleId;
 
   let query = new Parse.Query("Module");
-  let module = undefined;
+  let module;
   let index;
 
   if (moduleId) {
@@ -107,7 +100,7 @@ Parse.Cloud.define('createModule', async request => {
   return { id: module.id, index };
 });
 
-Parse.Cloud.define('createSubmodule', async request => {
+Parse.Cloud.define("createSubmodule", async (request) => {
   if (!request.master) {
     return "master key required";
   }
@@ -115,7 +108,9 @@ Parse.Cloud.define('createSubmodule', async request => {
   const name = request.params.name;
   const url = request.params.url;
   const moduleId = request.params.moduleId;
-  logger.info(`creating submodule with index: ${index} name: ${name} url: ${url} moduleId: ${moduleId}`);
+  logger.info(
+    `creating submodule with index: ${index} name: ${name} url: ${url} moduleId: ${moduleId}`
+  );
 
   const query = new Parse.Query("Submodule");
   query.equalTo("moduleId", moduleId);

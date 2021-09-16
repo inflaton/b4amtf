@@ -4,9 +4,9 @@ const MASTER_KEY = { useMasterKey: true };
 const MAX_QUERY_COUNT = 3000;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const logger = require("parse-server").logger;
-const axios = require('axios');
+const axios = require("axios");
 
-const requireAuth = user => {
+const requireAuth = (user) => {
   if (!user) throw new Error("User must be authenticated!");
   // Parse.Cloud.useMasterKey();
 };
@@ -34,26 +34,26 @@ const reportPracticeCountV2 = async function (
     )}`
   );
 
-  var query = new Parse.Query("Practice");
+  let query = new Parse.Query("Practice");
   query.equalTo("objectId", practiceId);
   const practice = await query.first();
-  var relation = practice.relation("counts");
-  var newCount = false;
-  var delta = count == undefined ? 0 : count;
+  let relation = practice.relation("counts");
+  let newCount = false;
+  let delta = count === undefined ? 0 : count;
 
   query = relation.query();
   query.equalTo("userId", userId);
   query.equalTo("reportedAt", reportedAt);
-  var currentPracticeCount = await query.first();
+  let currentPracticeCount = await query.first();
 
   if (currentPracticeCount) {
     delta -= currentPracticeCount.get("count");
-    if (count == undefined) {
+    if (count === undefined) {
       await currentPracticeCount.destroy();
       currentPracticeCount = undefined;
     }
   } else {
-    if (count != undefined) {
+    if (count !== undefined) {
       currentPracticeCount = new Parse.Object("UserPracticeCount");
       currentPracticeCount.set("userId", userId);
       currentPracticeCount.set("reportedAt", reportedAt);
@@ -69,7 +69,7 @@ const reportPracticeCountV2 = async function (
   query = relation.query();
   query.equalTo("userId", userId);
   query.equalTo("reportedAt", undefined);
-  var accumulatedCount = await query.first();
+  let accumulatedCount = await query.first();
 
   if (accumulatedCount) {
     count = accumulatedCount.get("count") + delta;
@@ -92,19 +92,19 @@ const reportPracticeCountV2 = async function (
     await practice.save(null, MASTER_KEY);
   }
 
-  var resultPracticeSessions = [];
+  const resultPracticeSessions = [];
   if (currentPracticeCount && practiceSessions) {
     relation = currentPracticeCount.relation("practiceSessions");
     query = relation.query();
     query.ascending("index");
-    var parsePracticeSessions = await query.limit(MAX_QUERY_COUNT).find();
+    const parsePracticeSessions = await query.limit(MAX_QUERY_COUNT).find();
 
     const length =
       parsePracticeSessions.length > practiceSessions.length
         ? parsePracticeSessions.length
         : practiceSessions.length;
-    for (var i = 0; i < length; i++) {
-      var parsePracticeSession = undefined;
+    for (let i = 0; i < length; i++) {
+      let parsePracticeSession;
       if (i < parsePracticeSessions.length) {
         parsePracticeSession = parsePracticeSessions[i];
       } else {
@@ -146,7 +146,7 @@ const reportPracticeCountV2 = async function (
     count: currentPracticeCount.get("count"),
     reportedAt: currentPracticeCount.get("reportedAt"),
     accumulatedCount: accumulatedCount.get("count"),
-    sessions: resultPracticeSessions ? resultPracticeSessions.length : 0
+    sessions: resultPracticeSessions ? resultPracticeSessions.length : 0,
   };
 };
 
@@ -158,12 +158,12 @@ const updateAttendanceV2 = async function (
 ) {
   requireAuth(user);
 
-  var count = attendance.attendance ? 1 : 0;
+  let count = attendance.attendance ? 1 : 0;
   const result = {};
-  var query = new Parse.Query("UserSessionAttendance");
+  let query = new Parse.Query("UserSessionAttendance");
   query.equalTo("userId", user.id);
   query.equalTo("sessionId", sessionId);
-  var sessionAttendance = await query.first();
+  let sessionAttendance = await query.first();
 
   if (!sessionAttendance) {
     sessionAttendance = new Parse.Object("UserSessionAttendance");
@@ -184,13 +184,13 @@ const updateAttendanceV2 = async function (
   result.onLeave = sessionAttendance.get("onLeave");
 
   query = new Parse.Query("UserActivityStats");
-  var key = {
+  let key = {
     userId: user.id,
-    classId
+    classId,
   };
   key = JSON.stringify(key);
   query.equalTo("key", key);
-  var stats = await query.first();
+  let stats = await query.first();
   if (stats) {
     count += stats.get("count");
   } else {
@@ -204,11 +204,11 @@ const updateAttendanceV2 = async function (
 };
 
 const getDatesFromCsvHeader = function (csvHeader, isRxl, isPractice) {
-  var key,
-    year,
-    yearStr,
-    mapDates = {};
-  for (var i = 0; i < csvHeader.length; i++) {
+  let key;
+  let year;
+  let yearStr;
+  const mapDates = {};
+  for (let i = 0; i < csvHeader.length; i++) {
     key = csvHeader[i];
     if (key.startsWith("20") && key.endsWith("TOTAL")) {
       yearStr = key.substring(0, 4);
@@ -226,15 +226,15 @@ const getDatesFromCsvHeader = function (csvHeader, isRxl, isPractice) {
     }
     const start = key.indexOf("-");
     if (start > 0) {
-      var value = key;
+      let value = key;
       if (key.length - start > 4) {
-        //this must be a range for a week - taking last date
+        // this must be a range for a week - taking last date
         value = key.substring(start + 1);
       }
       const date = new Date(`${value} ${year}`);
       if (!isPractice) {
         // RXL starts at 9am SGT while DYM at 2pm SGT
-        date.setHours(isRxl == undefined ? 0 : isRxl ? 1 : 6);
+        date.setHours(isRxl === undefined ? 0 : isRxl ? 1 : 6);
       }
       mapDates[key] = date;
     }
@@ -243,19 +243,19 @@ const getDatesFromCsvHeader = function (csvHeader, isRxl, isPractice) {
 };
 
 const prepareStudyReportGeneration = async function (parseClass, formalStudy) {
-  var query = parseClass
+  let query = parseClass
     .relation(formalStudy ? "sessions" : "selfStudySessions")
     .query();
   query.ascending("scheduledAt");
   const parseSessions = await query.limit(MAX_QUERY_COUNT).find();
   const csvHeader = ["组别", "组员"];
   const mapDates = {};
-  for (var i = 0; i < parseSessions.length; i++) {
+  for (let i = 0; i < parseSessions.length; i++) {
     const parseSession = parseSessions[i];
     const scheduledAt = parseSession.get("scheduledAt");
     if (formalStudy) {
       const content = parseSession.get("content");
-      for (var j = 0; j < content.submodules.length; j++) {
+      for (let j = 0; j < content.submodules.length; j++) {
         const submoduleId = content.submodules[j];
         query = new Parse.Query("Submodule");
         query.equalTo("objectId", submoduleId);
@@ -298,38 +298,39 @@ const prepareReportGeneration = async function (
 
   const startDate = parseClass.get("startDate");
   const classDay = startDate.getDay();
-  var saturday = startDate;
-  var sunday = new Date(startDate.getTime() + (7 - classDay) * DAY_IN_MS);
+  let saturday = startDate;
+  let sunday = new Date(startDate.getTime() + (7 - classDay) * DAY_IN_MS);
 
-  var today = new Date();
-  var endDate = new Date(today.getFullYear(), 11, 31);
+  const today = new Date();
+  const endDate = new Date(today.getFullYear(), 11, 31);
 
   logger.info(
     `prepareReportGeneration - startDate: ${startDate}  sunday: ${sunday} endDate: ${endDate}`
   );
 
-  var lastMonth, lastYear;
+  let lastMonth, lastYear;
   while (saturday <= endDate) {
-    var monday = new Date(sunday.getTime() - 6 * DAY_IN_MS);
+    const monday = new Date(sunday.getTime() - 6 * DAY_IN_MS);
 
     const re = /[\s,]+/;
     const monElements = toLocalDateString(monday).split(re);
     const satElements = toLocalDateString(saturday).split(re);
     const sunElements = toLocalDateString(sunday).split(re);
     const newCsvHeader = isPractice
-      ? `${monElements[1]}${monElements[0] != sunElements[0] ? monElements[0].toUpperCase() : ""
-      }-${sunElements[1]}${sunElements[0].toUpperCase()}`
+      ? `${monElements[1]}${
+          monElements[0] !== sunElements[0] ? monElements[0].toUpperCase() : ""
+        }-${sunElements[1]}${sunElements[0].toUpperCase()}`
       : `${satElements[1]}-${satElements[0].toUpperCase()}`;
 
     if (!lastMonth) {
       lastMonth = satElements[0];
       lastYear = satElements[2];
     } else {
-      if (lastMonth != satElements[0]) {
+      if (lastMonth !== satElements[0]) {
         csvHeader.push(`${lastMonth.toUpperCase()}${lastYear} TOTAL`);
         lastMonth = satElements[0];
 
-        if (lastYear != satElements[2]) {
+        if (lastYear !== satElements[2]) {
           csvHeader.push(`${lastYear} TOTAL`);
           lastYear = satElements[2];
         }
@@ -346,20 +347,20 @@ const prepareReportGeneration = async function (
   csvHeader.push(`${lastYear} TOTAL`);
   csvHeader.push("TOTAL");
 
-  var mapDates = getDatesFromCsvHeader(csvHeader, undefined, isPractice);
+  const mapDates = getDatesFromCsvHeader(csvHeader, undefined, isPractice);
 
   return { csvHeader, mapDates };
 };
 
 const formatCount = function (count) {
-  if (count != undefined) {
+  if (count !== undefined) {
     return count.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
   }
   return "";
 };
 
 const formatMinutes = function (minutes) {
-  if (minutes != undefined) {
+  if (minutes !== undefined) {
     minutes = (minutes / 60).toFixed(2);
     return minutes.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
   }
@@ -370,7 +371,7 @@ const toLocalDateString = function (date) {
   const options = {
     year: "numeric",
     month: "short",
-    day: "numeric"
+    day: "numeric",
   };
   return date.toLocaleDateString("en-UK", options);
 };
@@ -386,9 +387,9 @@ const sendEmailViaSendGrid = async function (toEmail, ccEmail, subject, body) {
     from: process.env.OUTLOOK_USER,
     replyTo: process.env.OUTLOOK_USER,
     to: toEmail,
-    cc: ccEmail != toEmail ? ccEmail : undefined,
+    cc: ccEmail !== toEmail ? ccEmail : undefined,
     subject: subject,
-    text: body
+    text: body,
   };
 
   try {
@@ -406,15 +407,15 @@ const sendEmailViaOutlook = async function (toEmail, ccEmail, subject, body) {
   await mail.sendEmail({
     auth: {
       user: process.env.OUTLOOK_USER,
-      pass: process.env.OUTLOOK_PASS
+      pass: process.env.OUTLOOK_PASS,
     },
     from: process.env.OUTLOOK_USER,
     to: toEmail,
     cc: ccEmail,
     subject: subject,
     text: body,
-    onError: e => logger.info(`Error - ${e}`),
-    onSuccess: i => logger.info(`Success - ${JSON.stringify(i)}`)
+    onError: (e) => logger.info(`Error - ${e}`),
+    onSuccess: (i) => logger.info(`Success - ${JSON.stringify(i)}`),
   });
 
   return `sent email to ${toEmail}`;
@@ -432,9 +433,9 @@ const sendEmail = async function (toEmail, ccEmail, subject, body) {
 };
 
 const getLastWeek = function (addGmt8Offset) {
-  var curr = new Date();
-  var sunday = curr.getDate() - curr.getDay(); // Sunday is the day of the month - the day of the week
-  if (curr.getDay() == 0) {
+  const curr = new Date();
+  let sunday = curr.getDate() - curr.getDay(); // Sunday is the day of the month - the day of the week
+  if (curr.getDay() === 0) {
     // today is Sunday; we need last Sunday
     sunday -= 7;
   }
@@ -447,7 +448,7 @@ const getLastWeek = function (addGmt8Offset) {
   monday.setHours(0, 0, 0, 0);
 
   if (addGmt8Offset) {
-    const gmt8Offset = 8 * 60 * 60 * 1000; //8 hours in ms
+    const gmt8Offset = 8 * 60 * 60 * 1000; // 8 hours in ms
     monday.setTime(monday.getTime() + gmt8Offset);
     sunday.setTime(sunday.getTime() + gmt8Offset);
   }
@@ -456,13 +457,13 @@ const getLastWeek = function (addGmt8Offset) {
 };
 
 const loadClassWithTeams = async function (classId) {
-  var query = new Parse.Query("Class");
+  let query = new Parse.Query("Class");
   query.equalTo("objectId", classId);
   const parseClass = await query.first();
 
   const classInfo = {
     parseClass,
-    classTeams: []
+    classTeams: [],
   };
 
   query = new Parse.Query("Team");
@@ -470,17 +471,17 @@ const loadClassWithTeams = async function (classId) {
   query.ascending("index");
   const parseTeams = await query.limit(MAX_QUERY_COUNT).find();
 
-  for (var i = 0; i < parseTeams.length; i++) {
+  for (let i = 0; i < parseTeams.length; i++) {
     const parseTeam = parseTeams[i];
     const team = {
       parseTeam,
-      members: []
+      members: [],
     };
 
-    var membersOrder = parseTeam.get("membersOrder");
+    let membersOrder = parseTeam.get("membersOrder");
     if (membersOrder) {
       membersOrder = membersOrder.split(",");
-      for (var j = 0; j < membersOrder.length; j++) {
+      for (let j = 0; j < membersOrder.length; j++) {
         query = new Parse.Query("User");
         query.equalTo("objectId", membersOrder[j]);
         const parseUser = await query.find(MASTER_KEY);
@@ -494,9 +495,9 @@ const loadClassWithTeams = async function (classId) {
 };
 
 const loadStudentAttendanceV2 = async function (userId, classSession) {
-  var result = {};
+  const result = {};
   if (classSession) {
-    var query = new Parse.Query("UserSessionAttendance");
+    const query = new Parse.Query("UserSessionAttendance");
     query.equalTo("userId", userId);
     query.equalTo("sessionId", classSession._getId());
     const parseUserSessionAttendance = await query.first();
@@ -508,7 +509,8 @@ const loadStudentAttendanceV2 = async function (userId, classSession) {
   }
 
   logger.info(
-    `loadStudentAttendanceV2 - userId: ${userId} sessionId: ${classSession ? classSession._getId() : undefined
+    `loadStudentAttendanceV2 - userId: ${userId} sessionId: ${
+      classSession ? classSession._getId() : undefined
     } result: ${JSON.stringify(result)}`
   );
 
@@ -527,18 +529,18 @@ const loadUserMissedReportingStates = async function (
 
   if (lastSession) {
     const attendance = await loadStudentAttendanceV2(userId, lastSession);
-    var reported =
-      attendance && (attendance.onLeave || attendance.attendance != undefined);
+    const reported =
+      attendance && (attendance.onLeave || attendance.attendance !== undefined);
     if (!reported) {
       results.push("共修出席");
     }
   }
 
-  var query = parseClass.relation("practices").query();
+  let query = parseClass.relation("practices").query();
   query.ascending("index");
   const parsePractices = await query.find();
 
-  for (var i = 0; i < parsePractices.length; i++) {
+  for (let i = 0; i < parsePractices.length; i++) {
     const parsePractice = parsePractices[i];
     const startDate = parsePractice.get("startDate");
     if (startDate && startDate > lastWeek.sunday) {
@@ -577,18 +579,18 @@ const remindClassReporting = async function (classId) {
   const parseClass = classInfo.parseClass;
   const subject = `${parseClass.get("name")}学修报数提醒`;
 
-  var query = parseClass.relation("sessions").query();
+  const query = parseClass.relation("sessions").query();
   query.greaterThanOrEqualTo("scheduledAt", lastWeek.monday);
   query.lessThanOrEqualTo("scheduledAt", lastWeek.sunday);
   const lastSession = await query.first();
 
-  var leaderEmail;
-  for (var i = 0; i < classInfo.classTeams.length; i++) {
+  let leaderEmail;
+  for (let i = 0; i < classInfo.classTeams.length; i++) {
     const team = classInfo.classTeams[i];
-    for (var j = 0; j < team.members.length; j++) {
+    for (let j = 0; j < team.members.length; j++) {
       const parseUser = team.members[j];
       const email = parseUser.get("email");
-      if (j == 0) {
+      if (j === 0) {
         leaderEmail = email;
       }
       if (email) {
@@ -631,9 +633,9 @@ const updateUserStudyRecord = async function (user, pathname, userStudyRecord) {
   );
 
   pathname = pathname.replace("/amitabha", "");
-  var query = new Parse.Query("Submodule");
+  let query = new Parse.Query("Submodule");
   query.contains("url", pathname);
-  var submodule = await query.first();
+  const submodule = await query.first();
 
   if (submodule) {
     const submoduleId = submodule._getId();
@@ -641,7 +643,7 @@ const updateUserStudyRecord = async function (user, pathname, userStudyRecord) {
 
     query.equalTo("userId", userId);
     query.equalTo("submoduleId", submoduleId);
-    var parseUserStudyRecord = await query.first();
+    let parseUserStudyRecord = await query.first();
 
     if (!parseUserStudyRecord) {
       parseUserStudyRecord = new Parse.Object("UserStudyRecord");
@@ -685,12 +687,16 @@ const sendVerificationEmail = async function (params) {
   const date = new Date();
   const timeNow = date.getTime();
 
-  logger.info(`sendVerificationEmail started at ${date}  - params: ${JSON.stringify(params)}`);
+  logger.info(
+    `sendVerificationEmail started at ${date}  - params: ${JSON.stringify(
+      params
+    )}`
+  );
   try {
     if (params && params.userId) {
-      let query = new Parse.Query(Parse.User);
+      const query = new Parse.Query(Parse.User);
       query.equalTo("objectId", params.userId);
-      let parseUser = await query.first(MASTER_KEY);
+      const parseUser = await query.first(MASTER_KEY);
       if (parseUser) {
         await sendVerificationEmailForUser(parseUser);
         logger.info("sendVerificationEmail finished at " + new Date());
@@ -717,12 +723,12 @@ const sendVerificationEmail = async function (params) {
       } else {
         user
           .destroy(MASTER_KEY)
-          .then(destroyed => {
+          .then((destroyed) => {
             logger.info(
               "Successfully destroyed object" + JSON.stringify(destroyed)
             );
           })
-          .catch(error => {
+          .catch((error) => {
             logger.info("Error: " + error.code + " - " + error.message);
           });
       }
@@ -745,37 +751,38 @@ const sendVerificationEmail = async function (params) {
 };
 
 const logResponse = function (response) {
-  logger.info('Response status: ' + response.status);
+  logger.info("Response status: " + response.status);
   let responseData;
   if (process.env.NODE_ENV === "development") {
     responseData = "\n" + JSON.stringify(response.data, null, 2);
   } else {
     responseData = JSON.stringify(response.data);
   }
-  logger.info('Response data: ' + responseData);
+  logger.info("Response data: " + responseData);
 };
 
 const triggerB4aSendVerificationEmail = async function (userId) {
   const headers = {
-    'X-Parse-Application-Id': process.env.VUE_APP_PARSE_APP_ID,
-    'X-Parse-Master-Key': process.env.PARSE_MASTER_KEY,
+    "X-Parse-Application-Id": process.env.VUE_APP_PARSE_APP_ID,
+    "X-Parse-Master-Key": process.env.PARSE_MASTER_KEY,
   };
-  const b4aParseServerUrl = process.env.B4A_PARSE_SERVER_URL || "https://parseapi.back4app.com";
+  const b4aParseServerUrl =
+    process.env.B4A_PARSE_SERVER_URL || "https://parseapi.back4app.com";
   const url = `${b4aParseServerUrl}/jobs/sendVerificationEmail`;
   const body = { userId };
   logger.info(`Starting request - url: ${url} body: ${JSON.stringify(body)}`);
   await axios
     .post(url, body, { headers })
-    .then(async response => {
-      logResponse(response);;
+    .then(async (response) => {
+      logResponse(response);
     })
-    .catch(error => {
+    .catch((error) => {
       if (error.response) {
         // Request made and server responded
         logResponse(error.response);
       } else {
-        logger.info('Error message: ' + error.message);
-        logger.info('Error request: ' + error.request);
+        logger.info("Error message: " + error.message);
+        logger.info("Error request: " + error.request);
       }
     });
 };
@@ -785,23 +792,23 @@ const loadInfoViaYoutubeApi = async function (youtubeId) {
   logger.info(`Starting request - url: ${url}`);
   return await axios
     .get(url)
-    .then(async response => {
+    .then(async (response) => {
       logResponse(response);
       let thumbnail;
       const { items } = response.data;
       const snippet = items[0] ? items[0].snippet : {};
       return { title: snippet.title, description: snippet.description };
     })
-    .catch(error => {
+    .catch((error) => {
       if (error.response) {
         // Request made and server responded
         logResponse(error.response);
       } else {
-        logger.info('Error message: ' + error.message);
-        logger.info('Error request: ' + error.request);
+        logger.info("Error message: " + error.message);
+        logger.info("Error request: " + error.request);
       }
       console.error(error);
-      throw "Error: " + error;
+      throw new Error("Error: " + error);
     });
 };
 
@@ -811,7 +818,7 @@ async function processYoutubeFormats(youtubeId, formats, shortenUrl = false) {
   if (shortenUrl) {
     let parseYoutube;
 
-    let query = new Parse.Query("Youtube");
+    const query = new Parse.Query("Youtube");
     query.equalTo("youtubeId", youtubeId);
     parseYoutube = await query.first();
 
@@ -824,7 +831,7 @@ async function processYoutubeFormats(youtubeId, formats, shortenUrl = false) {
     parseYoutube = await parseYoutube.save(null, MASTER_KEY);
 
     for (let i = 0; i < formats.length; i++) {
-      const format = formats[i]
+      const format = formats[i];
       format.url = `../proxy/yt/${youtubeId}/${format.height}`;
     }
   }
@@ -834,7 +841,7 @@ const loadYoutubeInfo = async function (youtubeId, singleFormat) {
   try {
     const url = `https://www.youtube.com/watch?v=${youtubeId}`;
     logger.info(`Starting youtubedl request - url: ${url}`);
-    const youtubeDownload = require('youtube-dl-exec');
+    const youtubeDownload = require("youtube-dl-exec");
 
     const result = await youtubeDownload(url, {
       dumpSingleJson: true,
@@ -843,7 +850,7 @@ const loadYoutubeInfo = async function (youtubeId, singleFormat) {
       noCheckCertificate: true,
       preferFreeFormats: true,
       youtubeSkipDashManifest: true,
-      referer: process.env.PUBLIC_SERVER_URL
+      referer: process.env.PUBLIC_SERVER_URL,
     });
 
     let height = 0;
@@ -853,10 +860,16 @@ const loadYoutubeInfo = async function (youtubeId, singleFormat) {
     for (let i = 0; i < result.formats.length; i++) {
       const format = result.formats[i];
       if (format.ext === "mp4" && format.acodec !== "none") {
-        const validFormat = { height: format.height, url: format.url, format: format.format };
+        const validFormat = {
+          height: format.height,
+          url: format.url,
+          format: format.format,
+        };
         formats.push(validFormat);
-        if ((height < targetHeight && format.height > height) ||
-          (height > targetHeight && format.height < height)) {
+        if (
+          (height < targetHeight && format.height > height) ||
+          (height > targetHeight && format.height < height)
+        ) {
           height = format.height;
           selectedFormat = validFormat;
         }
@@ -870,8 +883,14 @@ const loadYoutubeInfo = async function (youtubeId, singleFormat) {
       formats = [selectedFormat];
       logger.info(`single format:\n${JSON.stringify(formats, null, 4)}`);
     }
-    
-    return { height, downloadUrl: selectedFormat.url, title: result.title, description: result.description, formats };
+
+    return {
+      height,
+      downloadUrl: selectedFormat.url,
+      title: result.title,
+      description: result.description,
+      formats,
+    };
   } catch (e) {
     logger.info("loadYoutubeInfo error:");
     console.error(e);
@@ -885,7 +904,7 @@ function canSendEmailTo(email) {
     return true;
   }
   return email && !email.includes("@outlook") && !email.includes("@hotmail");
-};
+}
 
 module.exports = {
   requireAuth,
@@ -906,5 +925,5 @@ module.exports = {
   triggerB4aSendVerificationEmail,
   loadYoutubeInfo,
   canSendEmailTo,
-  DAY_IN_MS
+  DAY_IN_MS,
 };

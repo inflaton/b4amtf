@@ -10,11 +10,11 @@ const requireRole = commonFunctions.requireRole;
 
 const loadPracticeSubmodules = async function (moduleId) {
   if (moduleId) {
-    var query = new Parse.Query("Submodule");
+    const query = new Parse.Query("Submodule");
     query.equalTo("moduleId", moduleId);
     query.ascending("index");
-    var practiceSubmodules = await query.limit(MAX_QUERY_COUNT).find();
-    return practiceSubmodules.map(e => {
+    const practiceSubmodules = await query.limit(MAX_QUERY_COUNT).find();
+    return practiceSubmodules.map((e) => {
       return { id: e.id, name: e.get("name"), url: e.get("url") };
     });
   }
@@ -29,10 +29,10 @@ const loadStudentPracticeDetailsV2 = async function (
   logger.info(`loadStudentPracticeDetailsV2 - userId: ${userId}`);
 
   if (practices && practices.length > 0) {
-    for (var i = 0; i < practices.length; i++) {
-      var practiceCount = {};
-      var relation = practices[i].relation("counts");
-      var query = relation.query();
+    for (let i = 0; i < practices.length; i++) {
+      const practiceCount = {};
+      const relation = practices[i].relation("counts");
+      let query = relation.query();
       query.equalTo("userId", userId);
       query.equalTo("reportedAt", undefined);
       const accumulatedCount = await query.first();
@@ -51,7 +51,7 @@ const loadStudentPracticeDetailsV2 = async function (
       classInfo.counts.push(practiceCount);
 
       const moduleId = practices[i].get("moduleId");
-      var practiceSubmodules = await loadPracticeSubmodules(moduleId);
+      const practiceSubmodules = await loadPracticeSubmodules(moduleId);
       classInfo.practiceSubmodules.push(practiceSubmodules);
     }
   }
@@ -61,7 +61,7 @@ const generateClassSnapshotJsonV2 = async function (parseClass) {
   logger.info(`generateClassSnapshotJsonV2 - classId: ${parseClass.id}`);
 
   const result = {};
-  var query = parseClass.relation("students").query();
+  let query = parseClass.relation("students").query();
   result.studentCount = await query.count();
 
   const sessions = parseClass.relation("sessions");
@@ -80,14 +80,14 @@ const generateClassSnapshotJsonV2 = async function (parseClass) {
 const generateSessionSnapshotJsonV2 = async function (parseSession) {
   logger.info(`generateSessionSnapshotJsonV2 - sessionId: ${parseSession.id}`);
 
-  var query = new Parse.Query("UserSessionAttendance");
+  let query = new Parse.Query("UserSessionAttendance");
   query.equalTo("sessionId", parseSession.id);
   query.equalTo("attendance", true);
   const attendance = await query.count();
 
   const studyRecords = [];
   const content = parseSession.get("content");
-  for (var i = 0; i < content.submodules.length; i++) {
+  for (let i = 0; i < content.submodules.length; i++) {
     const submoduleId = content.submodules[i];
     const studyRecord = {};
     query = new Parse.Query("UserStudyRecord");
@@ -116,8 +116,8 @@ const generatePracticeSnapshotJsonV2 = async function (parsePractice) {
   query.equalTo("reportedAt", undefined);
   const counts = await query.limit(MAX_QUERY_COUNT).find();
 
-  var accumulatedCount = 0;
-  for (var i = 0; i < counts.length; i++) {
+  let accumulatedCount = 0;
+  for (let i = 0; i < counts.length; i++) {
     accumulatedCount += counts[i].get("count");
   }
   logger.info(
@@ -130,18 +130,18 @@ const loadSnapshotV2 = async function (parseObject, generateSnapshotJson) {
   const objectId = parseObject.id;
   logger.info(`loadSnapshotV2 - objectId: ${objectId}`);
 
-  var query = new Parse.Query("Snapshot");
+  const query = new Parse.Query("Snapshot");
   query.equalTo("forObjectId", objectId);
-  var snapshot = await query.first();
+  let snapshot = await query.first();
 
-  var needToRegenerate = true;
+  let needToRegenerate = true;
 
   if (!snapshot) {
     snapshot = new Parse.Object("Snapshot");
     snapshot.set("forObjectId", objectId);
   } else {
     const today = new Date();
-    //refresh every 1/2 hour
+    // refresh every 1/2 hour
     needToRegenerate =
       today.getTime() > snapshot.updatedAt.getTime() + (1 * 60 * 60 * 1000) / 2;
   }
@@ -158,9 +158,9 @@ const loadSnapshotV2 = async function (parseObject, generateSnapshotJson) {
 const loadPracticeSnapshotsV2 = async function (practices) {
   logger.info(`loadPracticeSnapshots - practices: ${practices}`);
 
-  var result = [];
+  const result = [];
   if (practices && practices.length > 0) {
-    for (var i = 0; i < practices.length; i++) {
+    for (let i = 0; i < practices.length; i++) {
       const practiceCount = await loadSnapshotV2(
         practices[i],
         generatePracticeSnapshotJsonV2
@@ -173,11 +173,11 @@ const loadPracticeSnapshotsV2 = async function (practices) {
 };
 
 const loadUserStudyRecord = async function (userId, submoduleId) {
-  var result = {};
-  var query = new Parse.Query("UserStudyRecord");
+  const result = {};
+  const query = new Parse.Query("UserStudyRecord");
   query.equalTo("userId", userId);
   query.equalTo("submoduleId", submoduleId);
-  var record = await query.first();
+  const record = await query.first();
 
   if (record) {
     result.lineage = record.get("lineage");
@@ -191,7 +191,7 @@ const getClassSessionDetails = async function (
   classSession,
   forStudent
 ) {
-  var attendance;
+  let attendance;
   if (forStudent) {
     attendance = await loadStudentAttendanceV2(userId, classSession);
   } else {
@@ -203,10 +203,10 @@ const getClassSessionDetails = async function (
 
   const submodules = [];
   const content = classSession.get("content");
-  for (var i = 0; i < content.submodules.length; i++) {
+  for (let i = 0; i < content.submodules.length; i++) {
     const submoduleId = content.submodules[i];
     const submodule = {};
-    var query = new Parse.Query("Submodule");
+    const query = new Parse.Query("Submodule");
     query.equalTo("objectId", submoduleId);
     const parseSubmodule = await query.first();
 
@@ -244,17 +244,17 @@ const loadClassSessionDetails = async function (
 };
 
 const loadUserRoles = async function (parseUser) {
-  var userRoleQuery = new Parse.Query(Parse.Role);
+  const userRoleQuery = new Parse.Query(Parse.Role);
   userRoleQuery.equalTo("users", parseUser);
   const roles = await userRoleQuery.find(MASTER_KEY);
-  return roles.length > 0 ? roles.map(r => r.get("name")) : ["StudentUser"];
+  return roles.length > 0 ? roles.map((r) => r.get("name")) : ["StudentUser"];
 };
 
 const loadClassTeachers = async function (parseClass) {
   const teachers = [];
-  var query = parseClass.relation("classAdminUsers").query();
-  var classAdminUsers = await query.find();
-  for (var i = 0; i < classAdminUsers.length; i++) {
+  const query = parseClass.relation("classAdminUsers").query();
+  const classAdminUsers = await query.find();
+  for (let i = 0; i < classAdminUsers.length; i++) {
     const parseUser = classAdminUsers[i];
     const roles = await loadUserRoles(parseUser);
 
@@ -270,18 +270,18 @@ const loadDashboardV2 = async function (parseUser, forStudent) {
   const userId = parseUser ? parseUser._getId() : undefined;
   const dashboard = forStudent
     ? {
-      enrolledClasses: [],
-      newClasses: []
-    }
+        enrolledClasses: [],
+        newClasses: [],
+      }
     : {
-      classes: []
-    };
+        classes: [],
+      };
 
-  var query = new Parse.Query("Class");
+  let query = new Parse.Query("Class");
   query.notEqualTo("deactivated", true);
 
-  var canDownloadReports = true;
-  //undefined if loading System Admin Dashboard
+  let canDownloadReports = true;
+  // undefined if loading System Admin Dashboard
   if (parseUser) {
     if (forStudent) {
       query.equalTo("students", parseUser);
@@ -291,11 +291,11 @@ const loadDashboardV2 = async function (parseUser, forStudent) {
     }
   }
 
-  var parseClasses = await query.find();
+  let parseClasses = await query.find();
 
   const enrolledClassList = [];
 
-  for (var i = 0; i < parseClasses.length; i++) {
+  for (let i = 0; i < parseClasses.length; i++) {
     const parseClass = parseClasses[i];
     const classInfo = {
       id: parseClass._getId(),
@@ -307,14 +307,14 @@ const loadDashboardV2 = async function (parseUser, forStudent) {
       practices: [],
       counts: [],
       practiceSubmodules: [],
-      canDownloadReports
+      canDownloadReports,
     };
     enrolledClassList.push(parseClass._getId());
 
     classInfo.teachers = await loadClassTeachers(parseClass);
 
     if (!canDownloadReports) {
-      var metaData = parseClass.get("metaData");
+      const metaData = parseClass.get("metaData");
       if (metaData) {
         classInfo.canDownloadReports = metaData.adminStudentIds.includes(
           parseUser.id
@@ -332,7 +332,7 @@ const loadDashboardV2 = async function (parseUser, forStudent) {
     }
 
     query = parseClass.relation("sessions").query();
-    var d = new Date();
+    const d = new Date();
     query.greaterThan("scheduledAt", d);
     query.ascending("scheduledAt");
     const nextSession = await query.first();
@@ -393,7 +393,7 @@ const loadDashboardV2 = async function (parseUser, forStudent) {
 };
 
 const loadUserModuleInfo = async function (userId, moduleId, forDashboard) {
-  var query = new Parse.Query("Submodule");
+  let query = new Parse.Query("Submodule");
   query.equalTo("moduleId", moduleId);
   query.ascending("index");
   const parseSubmodules = await query.limit(MAX_QUERY_COUNT).find();
@@ -401,9 +401,9 @@ const loadUserModuleInfo = async function (userId, moduleId, forDashboard) {
     totalSubmodules: parseSubmodules.length,
     completedSubmodules: 0,
     submodules: [],
-    completed: forDashboard ? undefined : []
+    completed: forDashboard ? undefined : [],
   };
-  const submoduleIds = parseSubmodules.map(e => e.id);
+  const submoduleIds = parseSubmodules.map((e) => e.id);
 
   query = new Parse.Query("UserStudyRecord");
   query.equalTo("userId", userId);
@@ -411,10 +411,10 @@ const loadUserModuleInfo = async function (userId, moduleId, forDashboard) {
   query.ascending("updatedAt");
   const parseUserStudyRecords = await query.limit(MAX_QUERY_COUNT).find();
 
-  var maxIndex = -1,
-    latestSubmoduleId,
-    latestSubmoduleStudyRecord = undefined;
-  for (var j = 0; j < parseUserStudyRecords.length; j++) {
+  let maxIndex = -1;
+  let latestSubmoduleId;
+  let latestSubmoduleStudyRecord;
+  for (let j = 0; j < parseUserStudyRecords.length; j++) {
     const record = parseUserStudyRecords[j];
     const submoduleId = record.get("submoduleId");
     const index = submoduleIds.indexOf(submoduleId);
@@ -432,9 +432,9 @@ const loadUserModuleInfo = async function (userId, moduleId, forDashboard) {
     const parseSubmodule = parseSubmodules[j];
     if (
       !forDashboard ||
-      userModuleInfo.submodules.length == 1 ||
+      userModuleInfo.submodules.length === 1 ||
       !latestSubmoduleId ||
-      parseSubmodule.id == latestSubmoduleId
+      parseSubmodule.id === latestSubmoduleId
     ) {
       const submodule = {};
       submodule.id = parseSubmodule.id;
@@ -445,25 +445,25 @@ const loadUserModuleInfo = async function (userId, moduleId, forDashboard) {
 
       if (forDashboard) {
         submodule.studyRecord =
-          userModuleInfo.submodules.length == 0 && latestSubmoduleStudyRecord
+          userModuleInfo.submodules.length === 0 && latestSubmoduleStudyRecord
             ? {
-              lineage: latestSubmoduleStudyRecord.get("lineage"),
-              textbook: latestSubmoduleStudyRecord.get("textbook")
-            }
+                lineage: latestSubmoduleStudyRecord.get("lineage"),
+                textbook: latestSubmoduleStudyRecord.get("textbook"),
+              }
             : {};
         userModuleInfo.submodules.push(submodule);
 
-        if (userModuleInfo.submodules.length == 2) {
+        if (userModuleInfo.submodules.length === 2) {
           break;
         }
       } else {
         submodule.studyRecord = {};
-        for (var i = 0; i < parseUserStudyRecords.length; i++) {
+        for (let i = 0; i < parseUserStudyRecords.length; i++) {
           const record = parseUserStudyRecords[i];
-          if (submodule.id == record.get("submoduleId")) {
+          if (submodule.id === record.get("submoduleId")) {
             submodule.studyRecord = {
               lineage: record.get("lineage"),
-              textbook: record.get("textbook")
+              textbook: record.get("textbook"),
             };
             break;
           }
@@ -486,7 +486,7 @@ const loadStudentModuleDetails = async function (
   modules
 ) {
   selfStudyInfo.moduleDetails = [];
-  for (var i = 0; i < modules.length; i++) {
+  for (let i = 0; i < modules.length; i++) {
     const userModuleInfo = await loadUserModuleInfo(
       userId,
       modules[i].id,
@@ -503,11 +503,11 @@ const loadSelfStudyInfo = async function (parseUser, forDashboard) {
     `loadSelfStudyInfo - userId: ${userId} forDashboard: ${forDashboard}`
   );
 
-  var query = new Parse.Query("SelfStudy");
+  let query = new Parse.Query("SelfStudy");
   query.equalTo("userId", userId);
   const selfStudy = await query.first();
-  var moduleIds = [];
-  var practiceIds = [];
+  let moduleIds = [];
+  let practiceIds = [];
   if (selfStudy) {
     moduleIds = selfStudy.get("modules").active;
     practiceIds = selfStudy.get("practices").active;
@@ -519,9 +519,9 @@ const loadSelfStudyInfo = async function (parseUser, forDashboard) {
   const modules = await query.find();
 
   if (moduleIds.length) {
-    for (var i = 0; i < moduleIds.length; i++) {
-      for (var j = 0; j < modules.length; j++) {
-        if (moduleIds[i] == modules[j]._getId()) {
+    for (let i = 0; i < moduleIds.length; i++) {
+      for (let j = 0; j < modules.length; j++) {
+        if (moduleIds[i] === modules[j]._getId()) {
           selfStudyInfo.modules.push(modules[j]);
           modules.splice(j, 1);
           break;
@@ -547,7 +547,7 @@ const loadSelfStudyInfo = async function (parseUser, forDashboard) {
     if (moduleIds.length) {
       for (i = 0; i < moduleIds.length; i++) {
         for (j = 0; j < modules.length; j++) {
-          if (moduleIds[i] == modules[j]._getId()) {
+          if (moduleIds[i] === modules[j]._getId()) {
             selfStudyInfo.completedModules.push(modules[j]);
             modules.splice(j, 1);
             break;
@@ -565,7 +565,7 @@ const loadSelfStudyInfo = async function (parseUser, forDashboard) {
   if (practiceIds.length) {
     for (i = 0; i < practiceIds.length; i++) {
       for (j = 0; j < practices.length; j++) {
-        if (practiceIds[i] == practices[j]._getId()) {
+        if (practiceIds[i] === practices[j]._getId()) {
           selfStudyInfo.practices.push(practices[j]);
           practices.splice(j, 1);
           break;
@@ -592,7 +592,7 @@ const loadSelfStudyInfo = async function (parseUser, forDashboard) {
     if (practiceIds.length) {
       for (i = 0; i < practiceIds.length; i++) {
         for (j = 0; j < practices.length; j++) {
-          if (practiceIds[i] == practices[j]._getId()) {
+          if (practiceIds[i] === practices[j]._getId()) {
             selfStudyInfo.completedPractices.push(practices[j]);
             practices.splice(j, 1);
             break;
@@ -622,9 +622,9 @@ Parse.Cloud.define(
       )}`
     );
 
-    var query = new Parse.Query("SelfStudy");
+    const query = new Parse.Query("SelfStudy");
     query.equalTo("userId", userId);
-    var selfStudy = await query.first();
+    let selfStudy = await query.first();
 
     if (!selfStudy) {
       selfStudy = new Parse.Object("SelfStudy");
@@ -661,7 +661,11 @@ Parse.Cloud.define(
 
     const timeEnd = new Date().getTime();
     result.duration = timeEnd - timeStart;
-    logger.info(`home:loadDashboardsV2 - userId: ${user._getId()} duration: ${result.duration}`);
+    logger.info(
+      `home:loadDashboardsV2 - userId: ${user._getId()} duration: ${
+        result.duration
+      }`
+    );
     return result;
   }
 );
@@ -673,7 +677,7 @@ Parse.Cloud.define(
 
     const userModuleInfo = await loadUserModuleInfo(user.id, moduleId, false);
 
-    var query = new Parse.Query("Module");
+    const query = new Parse.Query("Module");
     query.equalTo("objectId", moduleId);
     userModuleInfo.module = await query.first();
 
@@ -690,7 +694,7 @@ Parse.Cloud.define(
       userStudyRecord
     );
 
-    var userModuleInfo;
+    let userModuleInfo;
     if (forDashboard) {
       userModuleInfo = await loadUserModuleInfo(
         user.id,
@@ -719,7 +723,7 @@ Parse.Cloud.define(
   "home:reportPracticeCountV2",
   async ({
     user,
-    params: { practiceId, reportedAt, count, practiceSessions }
+    params: { practiceId, reportedAt, count, practiceSessions },
   }) => {
     return await commonFunctions.reportPracticeCountV2(
       user,
@@ -741,7 +745,7 @@ Parse.Cloud.define(
       `class:fetchPracticeCountsV2 - userId: ${userId} practiceId: ${practiceId} forAdmin: ${forAdmin}`
     );
 
-    var query = new Parse.Query("Practice");
+    let query = new Parse.Query("Practice");
     query.equalTo("objectId", practiceId);
     const practice = await query.first();
 
@@ -754,9 +758,9 @@ Parse.Cloud.define(
       practice: practice,
       counts: [],
       users: [],
-      practiceSubmodules: []
+      practiceSubmodules: [],
     };
-    var relation = practice.relation("counts");
+    let relation = practice.relation("counts");
 
     query = relation.query();
     if (forAdmin) {
@@ -770,8 +774,8 @@ Parse.Cloud.define(
     const parseCounts = await query.limit(MAX_QUERY_COUNT).find();
 
     if (forAdmin) {
-      for (var i = 0; i < parseCounts.length; i++) {
-        var userQuery = parseClass.relation("students").query();
+      for (let i = 0; i < parseCounts.length; i++) {
+        const userQuery = parseClass.relation("students").query();
         userQuery.equalTo("objectId", parseCounts[i].get("userId"));
         const parseUser = await userQuery.first();
 
@@ -791,7 +795,9 @@ Parse.Cloud.define(
           relation = parseCounts[i].relation("practiceSessions");
           query = relation.query();
           query.ascending("index");
-          var parsePracticeSessions = await query.limit(MAX_QUERY_COUNT).find();
+          const parsePracticeSessions = await query
+            .limit(MAX_QUERY_COUNT)
+            .find();
           result.practiceSessions.push(parsePracticeSessions);
         }
       }
@@ -802,15 +808,15 @@ Parse.Cloud.define(
 );
 
 const loadNewSessions = async function (parseClass, classInfo) {
-  var submoduleIds = [];
-  for (var i = 0; i < classInfo.sessionDetails.length; i++) {
-    for (var j = 0; j < classInfo.sessionDetails[i].submodules.length; j++) {
+  const submoduleIds = [];
+  for (let i = 0; i < classInfo.sessionDetails.length; i++) {
+    for (let j = 0; j < classInfo.sessionDetails[i].submodules.length; j++) {
       submoduleIds.push(classInfo.sessionDetails[i].submodules[j].id);
     }
   }
 
   classInfo.modules = [];
-  var query = parseClass.relation("modules").query();
+  let query = parseClass.relation("modules").query();
   query.ascending("index");
   const modules = await query.limit(MAX_QUERY_COUNT).find();
 
@@ -824,15 +830,15 @@ const loadNewSessions = async function (parseClass, classInfo) {
     classInfo.modules.push({
       id: modules[i].id,
       name: modules[i].get("name"),
-      newSubmodules: parseSubmodules.map(e => {
+      newSubmodules: parseSubmodules.map((e) => {
         return {
           id: e.id,
           index: e.get("index"),
           name: e.get("name"),
           url: e.get("url"),
-          moduleId: e.get("moduleId")
+          moduleId: e.get("moduleId"),
         };
-      })
+      }),
     });
   }
 };
@@ -841,12 +847,12 @@ Parse.Cloud.define(
   "class:fetchSessionsV2",
   async ({
     user,
-    params: { classId, forApplication, forAdmin, loadingNewSessions }
+    params: { classId, forApplication, forAdmin, loadingNewSessions },
   }) => {
     requireAuth(user);
     const timeStart = new Date().getTime();
 
-    var query = new Parse.Query("Class");
+    let query = new Parse.Query("Class");
     query.equalTo("objectId", classId);
     const parseClass = await query.first();
 
@@ -861,7 +867,7 @@ Parse.Cloud.define(
       classSessions: [],
       sessionDetails: [],
       selfStudySessions: [],
-      selfStudySessionDetails: []
+      selfStudySessionDetails: [],
     };
 
     classInfo.teachers = await loadClassTeachers(parseClass);
@@ -870,7 +876,7 @@ Parse.Cloud.define(
     query.descending("scheduledAt");
     const classSessions = await query.limit(MAX_QUERY_COUNT).find();
 
-    for (var i = 0; i < classSessions.length; i++) {
+    for (let i = 0; i < classSessions.length; i++) {
       await loadClassSessionDetails(
         user.id,
         classInfo,
@@ -913,11 +919,11 @@ Parse.Cloud.define(
       )}`
     );
 
-    var parseClassSession;
-    var newSession;
+    let parseClassSession;
+    let newSession;
 
     if (classSession.id) {
-      var query = new Parse.Query("ClassSession");
+      const query = new Parse.Query("ClassSession");
       query.equalTo("objectId", classSession.id);
       parseClassSession = await query.first();
     } else {
@@ -929,12 +935,12 @@ Parse.Cloud.define(
     parseClassSession.set("name", classSession.name);
     parseClassSession.set("description", classSession.description);
 
-    const submodules = classSession.submodules.map(e => e.id);
+    const submodules = classSession.submodules.map((e) => e.id);
     const materials = classSession.materials;
 
     for (let i = 0; i < materials.length; i++) {
-      let material = materials[i];
-      if (material.videoId || material.url && material.url.endsWith(".mp4")) {
+      const material = materials[i];
+      if (material.videoId || (material.url && material.url.endsWith(".mp4"))) {
         let parseVideo;
         if (material.videoId) {
           query = new Parse.Query("Video");
@@ -973,7 +979,7 @@ Parse.Cloud.define(
 
 const getClassAdminStudents = async function (classAdminUsers) {
   const classAdminStudents = [];
-  for (var i = 0; i < classAdminUsers.length; i++) {
+  for (let i = 0; i < classAdminUsers.length; i++) {
     const parseUser = classAdminUsers[i];
     const roles = await loadUserRoles(parseUser);
 
@@ -981,7 +987,7 @@ const getClassAdminStudents = async function (classAdminUsers) {
       const member = {
         id: parseUser.id,
         name: parseUser.get("name"),
-        roles
+        roles,
       };
       classAdminStudents.push(member);
     }
@@ -998,7 +1004,7 @@ const loadTeams = async function (
 ) {
   requireAuth(user);
 
-  var query = new Parse.Query("Class");
+  let query = new Parse.Query("Class");
   query.equalTo("objectId", classId);
   const parseClass = await query.first();
 
@@ -1008,24 +1014,24 @@ const loadTeams = async function (
     url: parseClass.get("url"),
     downloadLink: parseClass.get("downloadLink"),
     classTeams: [{ members: [] }],
-    forAdmin
+    forAdmin,
   };
 
   if (loadingExtra) {
     query = parseClass.relation("classAdminUsers").query();
-    var classAdminUsers = await query.limit(MAX_QUERY_COUNT).find();
+    let classAdminUsers = await query.limit(MAX_QUERY_COUNT).find();
     classInfo.classAdminStudents = await getClassAdminStudents(classAdminUsers);
 
-    var adminStudentIds;
-    var metaData = parseClass.get("metaData");
+    let adminStudentIds;
+    const metaData = parseClass.get("metaData");
     if (metaData) {
       adminStudentIds = metaData.adminStudentIds;
-      const classAdminStudents = adminStudentIds.map(e => {
-        return classInfo.classAdminStudents.find(s => s.id == e);
+      const classAdminStudents = adminStudentIds.map((e) => {
+        return classInfo.classAdminStudents.find((s) => s.id === e);
       });
       classInfo.classAdminStudents = classAdminStudents;
     } else {
-      adminStudentIds = classInfo.classAdminStudents.map(e => e.id);
+      adminStudentIds = classInfo.classAdminStudents.map((e) => e.id);
     }
 
     query = new Parse.Query(Parse.Role);
@@ -1042,14 +1048,14 @@ const loadTeams = async function (
 
   query = new Parse.Query("Team");
   query.equalTo("classId", classId);
-  if (!forAdmin && !userWithRoles.roles.some(e => e == "ClassAdminUser")) {
+  if (!forAdmin && !userWithRoles.roles.some((e) => e === "ClassAdminUser")) {
     query.equalTo("leaderId", user.id);
   }
   query.ascending("index");
   const parseTeams = await query.limit(MAX_QUERY_COUNT).find();
 
   const studentAssignedInTeams = [];
-  for (var i = 0; i < parseTeams.length; i++) {
+  for (let i = 0; i < parseTeams.length; i++) {
     const parseTeam = parseTeams[i];
     const team = {
       id: parseTeam.id,
@@ -1057,29 +1063,29 @@ const loadTeams = async function (
       index: parseTeam.get("index"),
       classId: parseTeam.get("classId"),
       leader: undefined,
-      members: []
+      members: [],
     };
 
     const leaderId = parseTeam.get("leaderId");
-    var membersOrder = parseTeam.get("membersOrder");
+    let membersOrder = parseTeam.get("membersOrder");
     if (membersOrder) {
       membersOrder = membersOrder.split(",");
     }
     // logger.info(`loadTeams - membersOrder: ${JSON.stringify(membersOrder)}`);
 
     if (membersOrder) {
-      for (var j = 0; j < membersOrder.length; j++) {
+      for (let j = 0; j < membersOrder.length; j++) {
         query = new Parse.Query("User");
         query.equalTo("objectId", membersOrder[j]);
         const parseUser = await query.first();
         if (parseUser) {
           const member = {
             id: parseUser.id,
-            name: parseUser.get("name")
+            name: parseUser.get("name"),
           };
           studentAssignedInTeams.push(member.id);
 
-          if (member.id == leaderId) {
+          if (member.id === leaderId) {
             team.leader = member;
           }
 
@@ -1097,7 +1103,7 @@ const loadTeams = async function (
     for (j = 0; j < classStudents.length; j++) {
       const member = {
         id: classStudents[j].id,
-        name: classStudents[j].get("name")
+        name: classStudents[j].get("name"),
       };
       classInfo.classTeams[0].members.push(member);
     }
@@ -1117,7 +1123,7 @@ Parse.Cloud.define(
   "class:fetchStats",
   async ({
     user,
-    params: { user: userWithRoles, classId, practiceId, forAdmin, lastWeek }
+    params: { user: userWithRoles, classId, practiceId, forAdmin, lastWeek },
   }) => {
     const classInfo = await loadTeams(
       user,
@@ -1132,7 +1138,7 @@ Parse.Cloud.define(
       classInfo.lastWeek = lastWeek;
     }
 
-    var query, relation, parseClass;
+    let query, relation, parseClass;
     if (practiceId) {
       query = new Parse.Query("Practice");
       query.equalTo("objectId", practiceId);
@@ -1151,9 +1157,9 @@ Parse.Cloud.define(
       classInfo.hasSelfStudySessions = sessions.length > 0;
     }
 
-    for (var i = 0; i < classInfo.classTeams.length; i++) {
+    for (let i = 0; i < classInfo.classTeams.length; i++) {
       const team = classInfo.classTeams[i];
-      for (var j = 0; j < team.members.length; j++) {
+      for (let j = 0; j < team.members.length; j++) {
         const member = team.members[j];
         member.count = 0;
         if (practiceId) {
@@ -1173,15 +1179,15 @@ Parse.Cloud.define(
           const parseCounts = await query.limit(MAX_QUERY_COUNT).find();
           if (parseCounts.length) {
             member.lastWeek = 0;
-            for (var k = 0; k < parseCounts.length; k++) {
+            for (let k = 0; k < parseCounts.length; k++) {
               member.lastWeek += parseCounts[k].get("count");
             }
           }
         } else {
           query = new Parse.Query("UserActivityStats");
-          var key = {
+          let key = {
             userId: member.id,
-            classId
+            classId,
           };
           key = JSON.stringify(key);
           query.equalTo("key", key);
@@ -1205,9 +1211,9 @@ Parse.Cloud.define(
             if (attendance) {
               if (attendance.onLeave) {
                 member.lastWeek = "请假";
-              } else if (attendance.attendance == true) {
+              } else if (attendance.attendance === true) {
                 member.lastWeek = "已上课";
-              } else if (attendance.attendance == false) {
+              } else if (attendance.attendance === false) {
                 member.lastWeek = "未上课";
               }
             }
@@ -1223,14 +1229,14 @@ Parse.Cloud.define(
   "class:updateTeams",
   async ({
     user,
-    params: { classId, classTeams, removedStudents, classAdminUserIds }
+    params: { classId, classTeams, removedStudents, classAdminUserIds },
   }) => {
     requireAuth(user);
 
-    var query = new Parse.Query("Class");
+    let query = new Parse.Query("Class");
     query.equalTo("objectId", classId);
-    var parseClass = await query.first();
-    var metaData = parseClass.get("metaData");
+    let parseClass = await query.first();
+    let metaData = parseClass.get("metaData");
     if (!metaData) {
       metaData = {};
     }
@@ -1238,9 +1244,9 @@ Parse.Cloud.define(
     parseClass.set("metaData", metaData);
 
     if (removedStudents.length > 0) {
-      var relation = parseClass.relation("students");
+      const relation = parseClass.relation("students");
 
-      for (var i = 0; i < removedStudents.length; i++) {
+      for (let i = 0; i < removedStudents.length; i++) {
         query = new Parse.Query("User");
         query.equalTo("objectId", removedStudents[i].id);
         relation.remove(await query.first());
@@ -1258,9 +1264,9 @@ Parse.Cloud.define(
         const roles = await loadUserRoles(parseClassAdminUser);
 
         if (!roles.includes("TeacherUser")) {
-          var toRemove = true;
-          for (var j = 0; j < classAdminUserIds.length; j++) {
-            if (classAdminUserIds[j] == parseClassAdminUser._getId()) {
+          let toRemove = true;
+          for (let j = 0; j < classAdminUserIds.length; j++) {
+            if (classAdminUserIds[j] === parseClassAdminUser._getId()) {
               classAdminUserIds.splice(j, 1);
               toRemove = false;
               break;
@@ -1285,16 +1291,16 @@ Parse.Cloud.define(
 
     query = new Parse.Query("Team");
     query.equalTo("classId", classId);
-    var parseTeams = await query.limit(MAX_QUERY_COUNT).find();
+    const parseTeams = await query.limit(MAX_QUERY_COUNT).find();
     for (i = 0; i < parseTeams.length; i++) {
       await parseTeams[i].destroy();
     }
 
-    var teams = [];
+    const teams = [];
 
     for (i = 0; i < classTeams.length; i++) {
       const team = classTeams[i];
-      var parseTeam = new Parse.Object("Team");
+      let parseTeam = new Parse.Object("Team");
       parseTeam.set("classId", classId);
       parseTeam.set("index", i + 1);
       parseTeam.set("name", team.name);
@@ -1305,9 +1311,9 @@ Parse.Cloud.define(
         query = new Parse.Query(Parse.User);
         query.equalTo("objectId", team.members[j].id);
 
-        var parseUser = await query.first();
+        const parseUser = await query.first();
         if (parseUser) {
-          if (j == 0) {
+          if (j === 0) {
             parseTeam.set("leaderId", parseUser.id);
             parseTeam.set("membersOrder", parseUser.id);
           } else {
@@ -1339,29 +1345,29 @@ const loadDataForUser = async function (
   mapDates,
   parseCountList
 ) {
-  var monthlyTotal = undefined;
-  var yearlyTotal = 0;
-  var grandTotal = 0;
+  let monthlyTotal;
+  let yearlyTotal = 0;
+  let grandTotal = 0;
   const userId = parseUser.id;
   const result = {};
-  var lastDate;
-  for (var i = 0; i < csvHeader.length; i++) {
+  let lastDate;
+  for (let i = 0; i < csvHeader.length; i++) {
     const key = csvHeader[i];
-    if (i == 0) {
+    if (i === 0) {
       result[key] = parseTeam.get("index").toString();
-    } else if (i == 1) {
+    } else if (i === 1) {
       result[key] = parseUser.get("name");
     } else {
       const date = mapDates[key];
       if (date) {
-        var count = undefined;
+        let count;
         if (parsePractice) {
-          var relation = parsePractice.relation("counts");
+          const relation = parsePractice.relation("counts");
 
-          let query = relation.query();
+          const query = relation.query();
           query.equalTo("userId", userId);
           const reportedAt = date;
-          reportedAt.setHours(16); //Assuming GMT+8
+          reportedAt.setHours(16); // Assuming GMT+8
           query.lessThan("reportedAt", reportedAt);
 
           if (!lastDate) {
@@ -1372,7 +1378,7 @@ const loadDataForUser = async function (
           const parseCounts = await query.limit(MAX_QUERY_COUNT).find();
           if (parseCounts && parseCounts.length) {
             count = 0;
-            for (var j = 0; j < parseCounts.length; j++) {
+            for (let j = 0; j < parseCounts.length; j++) {
               count += parseCounts[j].get("count");
             }
             parseCountList.push(...parseCounts);
@@ -1381,7 +1387,7 @@ const loadDataForUser = async function (
 
           lastDate = reportedAt;
         } else {
-          let query = parseClass
+          const query = parseClass
             .relation(selfStudy ? "selfStudySessions" : "sessions")
             .query();
           query.equalTo("scheduledAt", date);
@@ -1408,8 +1414,8 @@ const loadDataForUser = async function (
               classSession
             );
             if (
-              attendance.attendance != undefined ||
-              attendance.onLeave != undefined
+              attendance.attendance !== undefined ||
+              attendance.onLeave !== undefined
             ) {
               count = attendance.attendance ? 1 : 0;
             }
@@ -1422,8 +1428,8 @@ const loadDataForUser = async function (
             }
           }
         }
-        if (count != undefined) {
-          monthlyTotal = (monthlyTotal ? monthlyTotal : 0) + count;
+        if (count !== undefined) {
+          monthlyTotal = (monthlyTotal || 0) + count;
           grandTotal += count;
         }
       } else {
@@ -1433,7 +1439,7 @@ const loadDataForUser = async function (
           result[key] = commonFunctions.formatCount(yearlyTotal);
           yearlyTotal = 0;
         } else {
-          const delta = monthlyTotal ? monthlyTotal : 0;
+          const delta = monthlyTotal || 0;
           yearlyTotal += delta;
           result[key] = commonFunctions.formatCount(monthlyTotal);
           monthlyTotal = undefined;
@@ -1451,7 +1457,7 @@ const loadDetailedDataForUser = async function (
   parseCountList,
   summaryRecord
 ) {
-  var query, i, j, k, m, key;
+  let query, i, j, k, m, key;
   const parsePracticeSessionsList = [];
   const practicedSubmoduleIds = [];
 
@@ -1470,7 +1476,7 @@ const loadDetailedDataForUser = async function (
 
   const moduleId = parsePractice.get("moduleId");
   const allSubmodules = await loadPracticeSubmodules(moduleId);
-  const practicedSubmodules = allSubmodules.filter(e => {
+  const practicedSubmodules = allSubmodules.filter((e) => {
     return practicedSubmoduleIds.includes(e.id);
   });
 
@@ -1480,25 +1486,25 @@ const loadDetailedDataForUser = async function (
     )}`
   );
 
-  var submoduleRecords = [];
+  let submoduleRecords = [];
 
   for (j = 0; j < practicedSubmodules.length; j++) {
-    var monthlyTotalCount = undefined;
-    var monthlyTotalMinutes = undefined;
-    var yearlyTotalCount = 0;
-    var yearlyTotalMinutes = 0;
-    var grandTotalCount = 0;
-    var grandTotalMinutes = 0;
+    let monthlyTotalCount;
+    let monthlyTotalMinutes;
+    let yearlyTotalCount = 0;
+    let yearlyTotalMinutes = 0;
+    const grandTotalCount = 0;
+    let grandTotalMinutes = 0;
     const perSubmoduleRecords = [{}, {}];
     k = 0;
-    var cursorInCountList = 0;
+    let cursorInCountList = 0;
     for (key in summaryRecord) {
       if (k < 2) {
         for (m = 0; m < perSubmoduleRecords.length; m++) {
           perSubmoduleRecords[m][key] = summaryRecord[key];
         }
       } else {
-        if (k == 2) {
+        if (k === 2) {
           for (m = 0; m < perSubmoduleRecords.length; m++) {
             perSubmoduleRecords[m]["观修方法"] = practicedSubmodules[j].name;
           }
@@ -1509,8 +1515,8 @@ const loadDetailedDataForUser = async function (
 
         const date = mapDates[key];
         if (date) {
-          var count = undefined;
-          var minutes = undefined;
+          let count;
+          let minutes;
           for (m = cursorInCountList; m < parseCountList.length; m++) {
             const parseCount = parseCountList[m];
             const reportedAt = parseCount.get("reportedAt");
@@ -1519,13 +1525,12 @@ const loadDetailedDataForUser = async function (
               for (i = 0; i < parsePracticeSessions.length; i++) {
                 const parsePracticeSession = parsePracticeSessions[i];
                 if (
-                  parsePracticeSession.get("submoduleId") ==
+                  parsePracticeSession.get("submoduleId") ===
                   practicedSubmodules[j].id
                 ) {
-                  count = (count ? count : 0) + 1;
+                  count = (count || 0) + 1;
                   minutes =
-                    (minutes ? minutes : 0) +
-                    parsePracticeSession.get("duration");
+                    (minutes || 0) + parsePracticeSession.get("duration");
                 }
               }
             } else {
@@ -1534,11 +1539,9 @@ const loadDetailedDataForUser = async function (
           }
           cursorInCountList = m;
 
-          if (count != undefined) {
-            monthlyTotalCount =
-              (monthlyTotalCount ? monthlyTotalCount : 0) + count;
-            monthlyTotalMinutes =
-              (monthlyTotalMinutes ? monthlyTotalMinutes : 0) + minutes;
+          if (count !== undefined) {
+            monthlyTotalCount = (monthlyTotalCount || 0) + count;
+            monthlyTotalMinutes = (monthlyTotalMinutes || 0) + minutes;
           }
 
           perSubmoduleRecords[0][key] = commonFunctions.formatCount(count);
@@ -1546,40 +1549,34 @@ const loadDetailedDataForUser = async function (
           // perSubmoduleRecords[2][key] = commonFunctions.formatCount(minutes);
         } else {
           if (key === "TOTAL") {
-            perSubmoduleRecords[0][key] = commonFunctions.formatCount(
-              grandTotalCount
-            );
-            perSubmoduleRecords[1][key] = commonFunctions.formatMinutes(
-              grandTotalMinutes
-            );
+            perSubmoduleRecords[0][key] =
+              commonFunctions.formatCount(grandTotalCount);
+            perSubmoduleRecords[1][key] =
+              commonFunctions.formatMinutes(grandTotalMinutes);
             // perSubmoduleRecords[2][key] = commonFunctions.formatCount(
             //   grandTotalMinutes
             // );
           } else if (key.startsWith("20") && key.endsWith("TOTAL")) {
-            perSubmoduleRecords[0][key] = commonFunctions.formatCount(
-              yearlyTotalCount
-            );
-            perSubmoduleRecords[1][key] = commonFunctions.formatMinutes(
-              yearlyTotalMinutes
-            );
+            perSubmoduleRecords[0][key] =
+              commonFunctions.formatCount(yearlyTotalCount);
+            perSubmoduleRecords[1][key] =
+              commonFunctions.formatMinutes(yearlyTotalMinutes);
             // perSubmoduleRecords[2][key] = commonFunctions.formatCount(
             //   yearlyTotalMinutes
             // );
           } else {
-            var delta = monthlyTotalCount ? monthlyTotalCount : 0;
+            let delta = monthlyTotalCount || 0;
             yearlyTotalCount += delta;
             grandTotalMinutes += delta;
-            perSubmoduleRecords[0][key] = commonFunctions.formatCount(
-              monthlyTotalCount
-            );
+            perSubmoduleRecords[0][key] =
+              commonFunctions.formatCount(monthlyTotalCount);
             monthlyTotalCount = undefined;
 
-            delta = monthlyTotalMinutes ? monthlyTotalMinutes : 0;
+            delta = monthlyTotalMinutes || 0;
             yearlyTotalMinutes += delta;
             grandTotalMinutes += delta;
-            perSubmoduleRecords[1][key] = commonFunctions.formatMinutes(
-              monthlyTotalMinutes
-            );
+            perSubmoduleRecords[1][key] =
+              commonFunctions.formatMinutes(monthlyTotalMinutes);
             // perSubmoduleRecords[2][key] = commonFunctions.formatCount(
             //   monthlyTotalMinutes
             // );
@@ -1606,8 +1603,8 @@ Parse.Cloud.define(
       selfStudy,
       formalStudy,
       loadingDetails,
-      reportHash
-    }
+      reportHash,
+    },
   }) => {
     requireAuth(user);
 
@@ -1615,9 +1612,9 @@ Parse.Cloud.define(
       `generateReport - classId: ${classId} selfStudy: ${selfStudy} formalStudy: ${formalStudy} loadingDetails: ${loadingDetails}`
     );
     const requestedAt = new Date();
-    var parseReport;
+    let parseReport;
     if (reportHash) {
-      var reportQuery = new Parse.Query("Report");
+      const reportQuery = new Parse.Query("Report");
       reportQuery.equalTo("hash", reportHash);
       parseReport = await reportQuery.first();
       if (parseReport) {
@@ -1630,12 +1627,12 @@ Parse.Cloud.define(
       }
     }
 
-    var classQuery = new Parse.Query("Class");
+    const classQuery = new Parse.Query("Class");
     if (classId) {
       classQuery.equalTo("objectId", classId);
     }
 
-    var query, parsePractice;
+    let query, parsePractice;
     if (practiceId) {
       query = new Parse.Query("Practice");
       query.equalTo("objectId", practiceId);
@@ -1645,40 +1642,38 @@ Parse.Cloud.define(
       }
     }
 
-    var parseClass = await classQuery.first();
+    const parseClass = await classQuery.first();
     if (!classId) {
       classId = parseClass.id;
     }
 
-    const {
-      csvHeader,
-      mapDates
-    } = await commonFunctions.prepareReportGeneration(
-      parseClass,
-      practiceId,
-      selfStudy,
-      formalStudy
-    );
+    const { csvHeader, mapDates } =
+      await commonFunctions.prepareReportGeneration(
+        parseClass,
+        practiceId,
+        selfStudy,
+        formalStudy
+      );
 
     logger.info(
       `generateReport - csvHeader: ${csvHeader} mapDates: ${mapDates}`
     );
 
-    var i,
-      parseTeam,
-      results = [];
+    let i;
+    let parseTeam;
+    let results = [];
     if (!classTeams) {
-      //loading report for self
+      // loading report for self
       classTeams = [
         {
-          members: [{ id: user.id }]
-        }
+          members: [{ id: user.id }],
+        },
       ];
       query = new Parse.Query("Team");
       query.equalTo("classId", classId);
-      var parseTeams = await query.limit(MAX_QUERY_COUNT).find();
+      const parseTeams = await query.limit(MAX_QUERY_COUNT).find();
       for (i = 0; i < parseTeams.length; i++) {
-        var membersOrder = parseTeams[i].get("membersOrder");
+        let membersOrder = parseTeams[i].get("membersOrder");
         if (membersOrder) {
           membersOrder = membersOrder.split(",");
           logger.info(
@@ -1703,20 +1698,20 @@ Parse.Cloud.define(
     for (i = 0; i < classTeams.length; i++) {
       const team = classTeams[i];
       if (i > 0 || !parseTeam) {
-        //parseTeam is loaded above if loading report for self
+        // parseTeam is loaded above if loading report for self
         query = new Parse.Query("Team");
         query.equalTo("objectId", team.id);
         parseTeam = await query.first();
       }
 
-      for (var j = 0; j < team.members.length; j++) {
+      for (let j = 0; j < team.members.length; j++) {
         query = new Parse.Query(Parse.User);
         query.equalTo("objectId", team.members[j].id);
 
-        var parseUser = await query.first();
+        const parseUser = await query.first();
         const parseCountList = [];
         if (parseUser) {
-          var result = await loadDataForUser(
+          const result = await loadDataForUser(
             selfStudy,
             formalStudy,
             parseClass,
@@ -1768,7 +1763,7 @@ Parse.Cloud.define(
   async ({ user, params: { userId, practiceId } }) => {
     const result = {};
 
-    var query = new Parse.Query("Practice");
+    let query = new Parse.Query("Practice");
     query.equalTo("objectId", practiceId);
     const practice = await query.first();
     if (practice) {
@@ -1776,7 +1771,7 @@ Parse.Cloud.define(
       query = relation.query();
       query.equalTo("reportedAt", undefined);
       query.equalTo("userId", userId);
-      var parseCount = await query.first();
+      let parseCount = await query.first();
 
       if (parseCount) {
         parseCount.set("completed", true);
@@ -1790,24 +1785,23 @@ Parse.Cloud.define(
   }
 );
 
-Parse.Cloud.define("user:resetPassword", async request => {
+Parse.Cloud.define("user:resetPassword", async (request) => {
   try {
     const email = request.params.email.toLowerCase().trim();
     logger.info(`user:resetPassword - email: ${email}`);
     if (commonFunctions.canSendEmailTo(email)) {
       await Parse.User.requestPasswordReset(email);
     } else {
-      var parseUser;
-      var userQuery = new Parse.Query(Parse.User);
+      const userQuery = new Parse.Query(Parse.User);
       userQuery.equalTo("username", email);
-      parseUser = await userQuery.first(MASTER_KEY);
+      const parseUser = await userQuery.first(MASTER_KEY);
 
       if (!parseUser) {
-        throw `email ${email} not found`;
+        throw new Error(`email ${email} not found`);
       }
 
       if (parseUser.get("state" === "blocked")) {
-        throw `email ${email} has been blocked`;
+        throw new Error(`email ${email} has been blocked`);
       }
 
       parseUser.set("verificationEmailRequested", "passwordReset");
@@ -1819,11 +1813,14 @@ Parse.Cloud.define("user:resetPassword", async request => {
   } catch (e) {
     logger.info(`user:resetPassword - error`);
     console.error(e);
-    throw "Error: " + e;
+    throw new Error("Error: " + e);
   }
 });
 
-Parse.Cloud.define("video:loadYoutubeInfo", async request => {
+Parse.Cloud.define("video:loadYoutubeInfo", async (request) => {
   const youtubeId = request.params.youtubeId;
-  return await commonFunctions.loadYoutubeInfo(youtubeId, request.headers["x-amtf-proxy-host"]);
+  return await commonFunctions.loadYoutubeInfo(
+    youtubeId,
+    request.headers["x-amtf-proxy-host"]
+  );
 });

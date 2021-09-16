@@ -20,9 +20,9 @@ Parse.Cloud.define(
     const updatedSessions = [];
 
     for (let i = 0; i < allSessions.length; i++) {
-      const classSession = allSessions[i];
+      let classSession = allSessions[i];
       const content = classSession.get("content");
-      if (content.submodules.length == 1) {
+      if (content.submodules.length === 1) {
         continue;
       }
 
@@ -37,9 +37,9 @@ Parse.Cloud.define(
           const submodule = await query.first();
           content.submodules[1] = submodule.id;
         }
-        classSession.set("content", content);
 
-        const classSession = await classSession.save(null, MASTER_KEY);
+        classSession.set("content", content);
+        classSession = await classSession.save(null, MASTER_KEY);
         updatedSessions.push(classSession);
       }
     }
@@ -52,7 +52,7 @@ Parse.Cloud.define(
   "admin:importCsv",
   async ({
     user,
-    params: { user: userWithRoles, classId, practiceId, csv, createDummyUser }
+    params: { user: userWithRoles, classId, practiceId, csv, createDummyUser },
   }) => {
     requireAuth(user);
     requireRole(userWithRoles, "B4aAdminUser");
@@ -62,7 +62,7 @@ Parse.Cloud.define(
     const parseClass = await query.first();
 
     const csvHeader = [];
-    for (var key in csv[0]) {
+    for (const key in csv[0]) {
       csvHeader.push(key);
     }
     const mapDates = commonFunctions.getDatesFromCsvHeader(
@@ -78,7 +78,7 @@ Parse.Cloud.define(
     for (let i = 0; i < csv.length; i++) {
       const record = csv[i];
       let name = record["组员"];
-      if (!name || name.length == 0) {
+      if (!name || name.length === 0) {
         continue;
       }
       const index = parseInt(record["组别"]);
@@ -111,8 +111,8 @@ Parse.Cloud.define(
         parseClass.relation("students").add(parseUser);
       }
 
-      var team;
-      const teamIndex = teams.findIndex(e => e.get("index") == index);
+      let team;
+      const teamIndex = teams.findIndex((e) => e.get("index") === index);
       if (teamIndex < 0) {
         query = new Parse.Query("Team");
         query.equalTo("classId", classId);
@@ -146,10 +146,7 @@ Parse.Cloud.define(
         const date = mapDates[key];
         if (date) {
           let countStr = record[key].split(/[,.]/).join("");
-          countStr = countStr
-            .split("-")
-            .join("")
-            .trim();
+          countStr = countStr.split("-").join("").trim();
           if (countStr && countStr.length > 0) {
             const count = parseInt(countStr);
             if (isNaN(count)) {
@@ -217,7 +214,13 @@ Parse.Cloud.define(
   "admin:prepareReportGeneration",
   async ({
     user,
-    params: { user: userWithRoles, classId, isPractice, selfStudy, formalStudy }
+    params: {
+      user: userWithRoles,
+      classId,
+      isPractice,
+      selfStudy,
+      formalStudy,
+    },
   }) => {
     requireAuth(user);
     requireRole(userWithRoles, "B4aAdminUser");
@@ -250,10 +253,10 @@ const createSelfStudySessions = async function (moduleId, csv) {
   let lastSessionId;
   for (let i = 0; i < csv.length; i++) {
     const record = csv[i];
-    const sessionId = record["sessionId"];
-    const sessionTitle = record["sessionTitle"];
-    const speechId = record["speechId"];
-    const speechTitle = record["speechTitle"];
+    const sessionId = record.sessionId;
+    const sessionTitle = record.sessionTitle;
+    const speechId = record.speechId;
+    const speechTitle = record.speechTitle;
 
     let query = new Parse.Query("Submodule");
     query.equalTo("name", speechTitle);
@@ -280,11 +283,11 @@ const createSelfStudySessions = async function (moduleId, csv) {
         parseSession.set("name", sessionTitle);
       }
     }
-    var content;
-    if (sessionId != lastSessionId) {
+    let content;
+    if (sessionId !== lastSessionId) {
       content = {
         submodules: [submodule.id],
-        materials: []
+        materials: [],
       };
     } else {
       content = parseSession.get("content");
@@ -313,7 +316,7 @@ Parse.Cloud.define(
   "admin:createSelfStudySessions",
   async ({
     user,
-    params: { user: userWithRoles, classIds, moduleName, moduleUrl, csv }
+    params: { user: userWithRoles, classIds, moduleName, moduleUrl, csv },
   }) => {
     requireAuth(user);
     requireRole(userWithRoles, "B4aAdminUser");

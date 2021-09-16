@@ -7,7 +7,7 @@ const MAX_QUERY_COUNT = 3000;
 const logger = require("parse-server").logger;
 const commonFunctions = require("./commonFunctions.cjs");
 
-const requireAuth = user => {
+const requireAuth = (user) => {
   if (!user) throw new Error("User must be authenticated!");
   // Parse.Cloud.useMasterKey();
 };
@@ -22,14 +22,16 @@ const requireRole = (userWithRoles, role) => {
 Parse.Cloud.define(
   "user:signup",
   async ({ params: { name, username, email, password, phone } }) => {
-    let verificationEmailRequested = commonFunctions.canSendEmailTo(email) ? undefined : "confirmEmail";
+    const verificationEmailRequested = commonFunctions.canSendEmailTo(email)
+      ? undefined
+      : "confirmEmail";
     let parseUser = new Parse.User({
       name,
       email,
       password,
       username,
       phone,
-      verificationEmailRequested
+      verificationEmailRequested,
     });
     parseUser = await parseUser.save(null, MASTER_KEY);
     if (!commonFunctions.canSendEmailTo(email)) {
@@ -40,10 +42,10 @@ Parse.Cloud.define(
 );
 
 const loadUserRoles = async function (parseUser) {
-  var userRoleQuery = new Parse.Query(Parse.Role);
+  const userRoleQuery = new Parse.Query(Parse.Role);
   userRoleQuery.equalTo("users", parseUser);
   const roles = await userRoleQuery.find(MASTER_KEY);
-  return roles.length > 0 ? roles.map(r => r.get("name")) : ["StudentUser"];
+  return roles.length > 0 ? roles.map((r) => r.get("name")) : ["StudentUser"];
 };
 
 const loadUserDetails = async function (parseUser) {
@@ -56,7 +58,7 @@ const loadUserDetails = async function (parseUser) {
     email: parseUser.get("email"),
     emailVerified: parseUser.get("emailVerified"),
     state: parseUser.get("state"),
-    roles: rolesToReturn
+    roles: rolesToReturn,
   };
 };
 
@@ -70,12 +72,12 @@ Parse.Cloud.define(
     requireAuth(user);
     requireRole(userWithRoles, "B4aAdminUser");
 
-    var userQuery = new Parse.Query(Parse.User);
+    const userQuery = new Parse.Query(Parse.User);
     userQuery.ascending("name");
     const parseUsers = await userQuery.limit(MAX_QUERY_COUNT).find(MASTER_KEY);
     const usersCount = parseUsers.length;
     const users = [];
-    for (var i = 0; i < usersCount; i++) {
+    for (let i = 0; i < usersCount; i++) {
       users.push(await loadUserDetails(parseUsers[i]));
     }
     return { users, usersCount };
@@ -88,9 +90,9 @@ Parse.Cloud.define(
     requireAuth(user);
     requireRole(userWithRoles, "B4aAdminUser");
 
-    var userQuery = new Parse.Query(Parse.User);
+    const userQuery = new Parse.Query(Parse.User);
     userQuery.equalTo("objectId", userSlug);
-    var parseUser = await userQuery.first(MASTER_KEY);
+    const parseUser = await userQuery.first(MASTER_KEY);
 
     return await loadUserDetails(parseUser);
   }
@@ -108,14 +110,14 @@ Parse.Cloud.define(
       { enabled: userToUpdate.isTeacher, roleName: "TeacherUser" },
       {
         enabled: userToUpdate.isTeachingAssistant,
-        roleName: "TeachingAssistantUser"
+        roleName: "TeachingAssistantUser",
       },
-      { enabled: userToUpdate.isStudent, roleName: "StudentUser" }
+      { enabled: userToUpdate.isStudent, roleName: "StudentUser" },
     ];
 
-    var parseUser;
+    let parseUser;
     if (userToUpdate.id) {
-      var userQuery = new Parse.Query(Parse.User);
+      const userQuery = new Parse.Query(Parse.User);
       userQuery.equalTo("objectId", userToUpdate.id);
       parseUser = await userQuery.first(MASTER_KEY);
     } else {
@@ -149,22 +151,22 @@ Parse.Cloud.define(
       parseUser = await parseUser.save(null, MASTER_KEY);
     }
 
-    var userRoleQuery = new Parse.Query(Parse.Role);
+    const userRoleQuery = new Parse.Query(Parse.Role);
     userRoleQuery.equalTo("users", parseUser);
-    var roles = await userRoleQuery.find(MASTER_KEY);
-    var roleNames = [];
+    const roles = await userRoleQuery.find(MASTER_KEY);
+    const roleNames = [];
 
-    for (var n = 0; n < array.length; n++) {
+    for (let n = 0; n < array.length; n++) {
       const i = array[n];
       if (i.enabled) {
         roleNames.push(i.roleName);
       }
 
-      const existing = roles.some(r => r.get("name") === i.roleName);
-      if (i.enabled != existing) {
-        var roleQuery = new Parse.Query(Parse.Role);
+      const existing = roles.some((r) => r.get("name") === i.roleName);
+      if (i.enabled !== existing) {
+        const roleQuery = new Parse.Query(Parse.Role);
         roleQuery.equalTo("name", i.roleName);
-        var role = await roleQuery.first(MASTER_KEY);
+        const role = await roleQuery.first(MASTER_KEY);
         const relation = role.relation("users");
 
         if (i.enabled) {
@@ -187,9 +189,9 @@ const loadStudentAttendance = async function (userId, classSession) {
     )}`
   );
 
-  var result = {};
+  let result = {};
   if (classSession) {
-    var query = classSession.relation("attendances").query();
+    const query = classSession.relation("attendances").query();
     query.equalTo("userId", userId);
     const attendance = await query.first();
 
@@ -201,7 +203,7 @@ const loadStudentAttendance = async function (userId, classSession) {
         faBen: attendance.get("faBen"),
         fuDao: attendance.get("fuDao"),
         shangKe: attendance.get("shangKe"),
-        qingJia: attendance.get("qingJia")
+        qingJia: attendance.get("qingJia"),
       };
 
       logger.info(`loadStudentAttendance - result: ${JSON.stringify(result)}`);
@@ -213,13 +215,13 @@ const loadStudentAttendance = async function (userId, classSession) {
 const loadStudentPracticeDetails = async function (userId, practices) {
   logger.info(`loadStudentPracticeDetails - userId: ${userId}`);
 
-  var counts = [];
-  var sessions = [];
+  const counts = [];
+  const sessions = [];
   if (practices && practices.length > 0) {
-    for (var i = 0; i < practices.length; i++) {
-      var practiceCount = {};
-      var relation = practices[i].relation("counts");
-      var query = relation.query();
+    for (let i = 0; i < practices.length; i++) {
+      const practiceCount = {};
+      let relation = practices[i].relation("counts");
+      let query = relation.query();
       query.equalTo("userId", userId);
       query.equalTo("reportedAt", undefined);
       const accumulatedCount = await query.first();
@@ -249,8 +251,8 @@ const loadStudentPracticeDetails = async function (userId, practices) {
 
 // eslint-disable-next-line no-unused-vars
 const populateSessions = async function (parseClass) {
-  var relation = parseClass.relation("sessions");
-  var query = relation.query();
+  const relation = parseClass.relation("sessions");
+  let query = relation.query();
   const done = await query.first();
 
   if (!done) {
@@ -258,8 +260,8 @@ const populateSessions = async function (parseClass) {
     query = new Parse.Query("ClassSession");
     query.startsWith("url", url);
 
-    var allSessions = await query.limit(MAX_QUERY_COUNT).find();
-    for (var i = 0; i < allSessions.length; i++) {
+    const allSessions = await query.limit(MAX_QUERY_COUNT).find();
+    for (let i = 0; i < allSessions.length; i++) {
       relation.add(allSessions[i]);
       logger.info(
         `populateSessions - i: ${i} classSession: ${allSessions[i].get("name")}`
@@ -274,7 +276,7 @@ const generateClassSnapshotJson = async function (parseClass) {
   logger.info(`generateClassSnapshotJson - classId: ${parseClass.id}`);
 
   const result = {};
-  var query = parseClass.relation("students").query();
+  let query = parseClass.relation("students").query();
   result.studentCount = await query.count();
 
   const sessions = parseClass.relation("sessions");
@@ -297,10 +299,10 @@ const generateSessionSnapshotJson = async function (parseSession) {
   logger.info(`generateSessionSnapshotJson - sessionId: ${parseSession.id}`);
 
   const result = { chuanCheng: 0, faBen: 0, shangKe: 0 };
-  var query = parseSession.relation("attendances").query();
-  var attendances = await query.limit(MAX_QUERY_COUNT).find();
+  const query = parseSession.relation("attendances").query();
+  const attendances = await query.limit(MAX_QUERY_COUNT).find();
 
-  for (var i = 0; i < attendances.length; i++) {
+  for (let i = 0; i < attendances.length; i++) {
     const attendance = attendances[i];
     if (attendance.get("chuanCheng")) {
       result.chuanCheng += 1;
@@ -320,18 +322,18 @@ const generatePracticeSnapshotJson = async function (parsePractice) {
   logger.info(`generatePracticeSnapshotJson - classId: ${parsePractice.id}`);
 
   const relation = parsePractice.relation("counts");
-  var query = relation.query();
+  const query = relation.query();
   // query.notEqualTo("reportedAt", undefined);
 
   // total will be a newly created field to hold the sum of score field
-  var pipeline = [{ group: { objectId: null, total: { $sum: "$count" } } }];
+  const pipeline = [{ group: { objectId: null, total: { $sum: "$count" } } }];
   const results = await query.aggregate(pipeline);
   const accumulatedCount = results.length ? results[0].total / 2 : 0;
   logger.info(
     `generatePracticeSnapshotJson - accumulatedCount: ${accumulatedCount}`
   );
 
-  var practiceCount = {};
+  const practiceCount = {};
   practiceCount.accumulatedCount = accumulatedCount;
   practiceCount.reportedAt = new Date();
 
@@ -342,18 +344,18 @@ const loadSnapshot = async function (parseObject, generateSnapshotJson) {
   const objectId = parseObject.id;
   logger.info(`loadSnapshot - objectId: ${objectId}`);
 
-  var query = new Parse.Query("Snapshot");
+  const query = new Parse.Query("Snapshot");
   query.equalTo("forObjectId", objectId);
-  var snapshot = await query.first();
+  let snapshot = await query.first();
 
-  var needToRegenerate = true;
+  let needToRegenerate = true;
 
   if (!snapshot) {
     snapshot = new Parse.Object("Snapshot");
     snapshot.set("forObjectId", objectId);
   } else {
     const today = new Date();
-    //refresh every 1 hour
+    // refresh every 1 hour
     needToRegenerate =
       today.getTime() > snapshot.updatedAt.getTime() + 1 * 60 * 60 * 1000;
   }
@@ -370,9 +372,9 @@ const loadSnapshot = async function (parseObject, generateSnapshotJson) {
 const loadPracticeSnapshots = async function (practices) {
   logger.info(`loadPracticeSnapshots - practices: ${practices}`);
 
-  var result = [];
+  const result = [];
   if (practices && practices.length > 0) {
-    for (var i = 0; i < practices.length; i++) {
+    for (let i = 0; i < practices.length; i++) {
       const practiceCount = await loadSnapshot(
         practices[i],
         generatePracticeSnapshotJson
@@ -388,16 +390,16 @@ const loadDashboard = async function (parseUser, forStudent) {
   const userId = parseUser ? parseUser._getId() : undefined;
   const dashboard = forStudent
     ? {
-      enrolledClasses: [],
-      newClasses: []
-    }
+        enrolledClasses: [],
+        newClasses: [],
+      }
     : {
-      classes: []
-    };
+        classes: [],
+      };
 
-  var query = new Parse.Query("Class");
+  let query = new Parse.Query("Class");
 
-  //undefined if loading System Admin Dashboard
+  // undefined if loading System Admin Dashboard
   if (parseUser) {
     if (forStudent) {
       query.equalTo("students", parseUser);
@@ -406,10 +408,10 @@ const loadDashboard = async function (parseUser, forStudent) {
     }
   }
 
-  var parseClasses = await query.find();
+  let parseClasses = await query.find();
   const enrolledClassList = [];
 
-  for (var i = 0; i < parseClasses.length; i++) {
+  for (let i = 0; i < parseClasses.length; i++) {
     const parseClass = parseClasses[i];
     const classInfo = {
       id: parseClass._getId(),
@@ -419,22 +421,22 @@ const loadDashboard = async function (parseUser, forStudent) {
       attendances: [],
       practices: [],
       counts: [],
-      practiceSessions: []
+      practiceSessions: [],
     };
     enrolledClassList.push(parseClass._getId());
 
     query = parseClass.relation("classAdminUsers").query();
     const classAdminUsers = await query.find();
-    classInfo.teachers = classAdminUsers.map(u => u.get("name"));
+    classInfo.teachers = classAdminUsers.map((u) => u.get("name"));
 
     query = parseClass.relation("sessions").query();
-    var d = new Date();
+    const d = new Date();
     query.greaterThan("scheduledAt", d);
     query.ascending("scheduledAt");
     const nextSession = await query.first();
     if (nextSession) {
       classInfo.classSessions.push(nextSession);
-      var attendance;
+      let attendance;
       if (forStudent) {
         attendance = await loadStudentAttendance(userId, nextSession);
       } else {
@@ -508,12 +510,12 @@ const loadDashboard = async function (parseUser, forStudent) {
       const classInfo = {
         id: id,
         name: parseClass.get("name"),
-        url: parseClass.get("url")
+        url: parseClass.get("url"),
       };
 
       query = parseClass.relation("classAdminUsers").query();
       const classAdminUsers = await query.find();
-      classInfo.teachers = classAdminUsers.map(u => u.get("name"));
+      classInfo.teachers = classAdminUsers.map((u) => u.get("name"));
 
       dashboard.newClasses.push(classInfo);
     }
@@ -550,9 +552,9 @@ Parse.Cloud.define(
     requireAuth(user);
 
     pathname = pathname.replace("/amitabha", "");
-    var query = new Parse.Query("ClassSession");
+    let query = new Parse.Query("ClassSession");
     query.contains("url", pathname);
-    var session = await query.first();
+    let session = await query.first();
     if (!session) {
       query = new Parse.Query("PracticeSession");
       query.contains("url", pathname);
@@ -569,9 +571,9 @@ Parse.Cloud.define(
 
     const result = {};
     pathname = pathname.replace("/amitabha", "");
-    var query = new Parse.Query("ClassSession");
+    let query = new Parse.Query("ClassSession");
     query.contains("url", pathname);
-    var session = await query.first();
+    let session = await query.first();
 
     if (!session) {
       query = new Parse.Query("PracticeSession");
@@ -584,7 +586,7 @@ Parse.Cloud.define(
       query = relation.query();
 
       query.equalTo("userId", user.id);
-      var parseAttendance = await query.first();
+      let parseAttendance = await query.first();
 
       const creatingAttendance = !parseAttendance;
       if (creatingAttendance) {
@@ -623,11 +625,11 @@ const loadUserStudyRecord = async function (userId, submoduleId) {
     `loadUserStudyRecord - userId: ${userId} submoduleId: ${submoduleId}`
   );
 
-  var result = {};
-  var query = new Parse.Query("UserStudyRecord");
+  const result = {};
+  const query = new Parse.Query("UserStudyRecord");
   query.equalTo("userId", userId);
   query.equalTo("submoduleId", submoduleId);
-  var record = await query.first();
+  const record = await query.first();
 
   if (record) {
     result.lineage = record.get("lineage");
@@ -645,9 +647,9 @@ Parse.Cloud.define(
     logger.info(`getUserStudyRecord - userId: ${userId} pathname: ${pathname}`);
 
     pathname = pathname.replace("/amitabha", "");
-    var query = new Parse.Query("Submodule");
+    const query = new Parse.Query("Submodule");
     query.contains("url", pathname);
-    var submodule = await query.first();
+    const submodule = await query.first();
 
     return loadUserStudyRecord(userId, submodule._getId());
   }
@@ -668,27 +670,27 @@ Parse.Cloud.define(
   "home:reportPracticeCount",
   async ({
     user,
-    params: { practiceId, practiceSessionId, reportedAt, count }
+    params: { practiceId, practiceSessionId, reportedAt, count },
   }) => {
     requireAuth(user);
 
-    var userId = user.id;
+    const userId = user.id;
     logger.info(
       `home:reportPracticeCount - userId: ${userId} practiceId: ${practiceId} practiceSessionId: ${practiceSessionId} reportedAt: ${reportedAt} count: ${count}`
     );
 
-    var query = new Parse.Query("Practice");
+    let query = new Parse.Query("Practice");
     query.equalTo("objectId", practiceId);
     const practice = await query.first();
     const relation = practice.relation("counts");
-    var newCount = false;
-    var delta = count;
+    let newCount = false;
+    let delta = count;
 
     query = relation.query();
     query.equalTo("userId", userId);
     query.equalTo("sessionId", practiceSessionId);
     query.equalTo("reportedAt", reportedAt);
-    var currentPracticeCount = await query.first();
+    let currentPracticeCount = await query.first();
 
     if (!currentPracticeCount) {
       currentPracticeCount = new Parse.Object("UserPracticeCount");
@@ -706,7 +708,7 @@ Parse.Cloud.define(
     query = relation.query();
     query.equalTo("userId", userId);
     query.equalTo("reportedAt", undefined);
-    var accumulatedCount = await query.first();
+    let accumulatedCount = await query.first();
 
     if (accumulatedCount) {
       count = accumulatedCount.get("count") + delta;
@@ -730,7 +732,7 @@ Parse.Cloud.define(
       id: currentPracticeCount._getId(),
       count: currentPracticeCount.get("count"),
       reportedAt: currentPracticeCount.get("reportedAt"),
-      accumulatedCount: accumulatedCount.get("count")
+      accumulatedCount: accumulatedCount.get("count"),
     };
   }
 );
@@ -744,12 +746,12 @@ Parse.Cloud.define(
   async ({ user, params: { practiceId, forAdmin } }) => {
     requireAuth(user);
 
-    var userId = user.id;
+    const userId = user.id;
     logger.info(
       `home:fetchPracticeCounts - userId: ${userId} practiceId: ${practiceId} forAdmin: ${forAdmin}`
     );
 
-    var query = new Parse.Query("Practice");
+    let query = new Parse.Query("Practice");
     query.equalTo("objectId", practiceId);
     const practice = await query.first();
     const result = {
@@ -757,9 +759,9 @@ Parse.Cloud.define(
       practice: practice,
       counts: [],
       users: [],
-      sessions: []
+      sessions: [],
     };
-    var relation = practice.relation("counts");
+    let relation = practice.relation("counts");
 
     query = relation.query();
     if (forAdmin) {
@@ -771,8 +773,8 @@ Parse.Cloud.define(
     result.counts = await query.limit(MAX_QUERY_COUNT).find();
 
     if (forAdmin) {
-      for (var i = 0; i < result.counts.length; i++) {
-        var userQuery = new Parse.Query(Parse.User);
+      for (let i = 0; i < result.counts.length; i++) {
+        const userQuery = new Parse.Query(Parse.User);
         userQuery.equalTo("objectId", result.counts[i].get("userId"));
         const parseUser = await userQuery.first();
         result.users.push(parseUser.get("name"));
@@ -781,12 +783,12 @@ Parse.Cloud.define(
       relation = practice.relation("sessions");
       query = relation.query();
       const sessions = await query.limit(MAX_QUERY_COUNT).find();
-      result.sessions = sessions.map(e => {
+      result.sessions = sessions.map((e) => {
         return { id: e.id, name: e.get("name") };
       });
       result.sessions.sort((s1, s2) => {
-        var a = parseSessionIndex(s1.name);
-        var b = parseSessionIndex(s2.name);
+        const a = parseSessionIndex(s1.name);
+        const b = parseSessionIndex(s2.name);
         return a > b ? 1 : b > a ? -1 : 0;
       });
     }
@@ -800,7 +802,7 @@ Parse.Cloud.define(
   async ({ user, params: { classId, forApplication, forAdmin } }) => {
     requireAuth(user);
 
-    var query = new Parse.Query("Class");
+    let query = new Parse.Query("Class");
     query.equalTo("objectId", classId);
     const parseClass = await query.first();
 
@@ -811,14 +813,14 @@ Parse.Cloud.define(
       forApplication: forApplication,
       forAdmin: forAdmin,
       classSessions: [],
-      attendances: []
+      attendances: [],
     };
 
     query = parseClass.relation("sessions").query();
     query.descending("scheduledAt");
     const classSessions = await query.limit(MAX_QUERY_COUNT).find();
 
-    for (var i = 0; i < classSessions.length; i++) {
+    for (let i = 0; i < classSessions.length; i++) {
       const classSession = classSessions[i];
       classInfo.classSessions.push(classSession);
 
@@ -839,13 +841,13 @@ Parse.Cloud.define(
 Parse.Cloud.define("class:apply", async ({ user, params: { classId } }) => {
   requireAuth(user);
 
-  var query = new Parse.Query("Class");
+  const query = new Parse.Query("Class");
   query.equalTo("objectId", classId);
   const parseClass = await query.first(MASTER_KEY);
 
-  var userQuery = new Parse.Query(Parse.User);
+  const userQuery = new Parse.Query(Parse.User);
   userQuery.equalTo("objectId", user.id);
-  var parseUser = await userQuery.first(MASTER_KEY);
+  const parseUser = await userQuery.first(MASTER_KEY);
 
   parseClass.relation("students").add(parseUser);
 
@@ -863,10 +865,10 @@ Parse.Cloud.define(
       )}`
     );
 
-    var result = {};
-    var query = new Parse.Query("ClassSession");
+    let result = {};
+    let query = new Parse.Query("ClassSession");
     query.equalTo("objectId", session.id);
-    var classSession = await query.first();
+    let classSession = await query.first();
 
     if (classSession) {
       classSession.set("scheduledAt", session.scheduledAt);
@@ -876,7 +878,7 @@ Parse.Cloud.define(
       result = classSession;
     }
 
-    if (session.id != session.oldId) {
+    if (session.id !== session.oldId) {
       query = new Parse.Query("ClassSession");
       query.equalTo("objectId", session.oldId);
       classSession = await query.first();
