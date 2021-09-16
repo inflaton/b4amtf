@@ -3,12 +3,15 @@
   "version": "1.4.0",
   "description": "An example Parse API server using the parse-server module",
   "main": "index.js",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/ParsePlatform/parse-server-example"
   },
   "license": "MIT",
   "dependencies": {
+    "@babel/core": "^7.15.5",
+    "amtf-proxy": "^1.1.5",
     "dotenv-flow": "^3.2.0",
     "express": "4.17.1",
     "kerberos": "1.1.4",
