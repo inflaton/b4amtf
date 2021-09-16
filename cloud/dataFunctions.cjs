@@ -33,6 +33,9 @@ const processUser = async function (user) {
 }
 
 Parse.Cloud.define('import', async request => {
+  if (!request.master) {
+    return "master key required";
+  }
   const className = request.params.className;
   const rows = request.params.results;
 
@@ -68,6 +71,9 @@ Parse.Cloud.define('import', async request => {
 
 
 Parse.Cloud.define('createModule', async request => {
+  if (!request.master) {
+    return "master key required";
+  }
   const name = request.params.name;
   const url = request.params.url;
   const moduleId = request.params.moduleId;
@@ -98,10 +104,13 @@ Parse.Cloud.define('createModule', async request => {
   module.set("index", index);
   module = await module.save();
 
-  return {id : module.id, index};
+  return { id: module.id, index };
 });
 
 Parse.Cloud.define('createSubmodule', async request => {
+  if (!request.master) {
+    return "master key required";
+  }
   const index = request.params.index;
   const name = request.params.name;
   const url = request.params.url;
@@ -111,8 +120,8 @@ Parse.Cloud.define('createSubmodule', async request => {
   const query = new Parse.Query("Submodule");
   query.equalTo("moduleId", moduleId);
   query.equalTo("index", index);
-  let submodule =  await query.first();
-  if(!submodule){
+  let submodule = await query.first();
+  if (!submodule) {
     submodule = new Parse.Object("Submodule");
   }
 
