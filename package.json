@@ -15,7 +15,8 @@
     "parse": "^3.3.0",
     "parse-dashboard": "^2.1.0",
     "parse-server": "^4.5.0",
-    "parse-smtp-template": "^2.2.0"
+    "parse-smtp-template": "^2.2.0",
+    "youtube-dl-exec": "^1.2.6"
   },
   "scripts": {
     "start": "node index.js",
