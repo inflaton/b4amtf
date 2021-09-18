@@ -20,5 +20,5 @@ installProxyMiddlewares(app, pathnameList);
 
 const port = process.env.PORT || 1337;
 app.listen(port, function () {
-  console.log("parse-server running on port " + port + ".");
-});
+  console.log(`${new Date()} - app is listening on port: ${port}`);
+})
