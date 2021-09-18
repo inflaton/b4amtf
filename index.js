@@ -14,7 +14,9 @@ dotEnv.config();
 
 const app = express();
 setupParseServer(app, nodeEnv);
-installProxyMiddlewares(app);
+
+const pathnameList = ["/online"];
+installProxyMiddlewares(app, pathnameList);
 
 const port = process.env.PORT || 1337;
 app.listen(port, function () {
