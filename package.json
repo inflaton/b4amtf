@@ -7,7 +7,7 @@
   "license": "ISC",
   "dependencies": {
     "@babel/core": "^7.15.5",
-    "amtf-proxy": "^1.1.7",
+    "amtf-proxy": "^1.2.5",
     "axios": "^0.21.4",
     "dotenv-flow": "^3.2.0",
     "express": "4.17.1",
