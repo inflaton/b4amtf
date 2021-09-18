@@ -1,6 +1,6 @@
 {
   "name": "b4amtf",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Backend for Amitabha",
   "main": "index.js",
   "type": "module",
@@ -30,7 +30,7 @@
     "node": "14.x"
   },
   "exports": {
-    ".": "./lib/setupParseServer.js",
+    ".": "./lib/setupParseServer.cjs",
     "./package.json": "./package.json"
   },
   "devDependencies": {
