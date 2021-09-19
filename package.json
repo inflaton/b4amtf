@@ -1,13 +1,13 @@
 {
   "name": "b4amtf",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Backend for Amitabha",
   "main": "index.js",
   "type": "module",
   "license": "ISC",
   "dependencies": {
     "@babel/core": "^7.15.5",
-    "amtf-proxy": "^1.2.7",
+    "amtf-proxy": "^1.2.9",
     "axios": "^0.21.4",
     "dotenv-flow": "^3.2.0",
     "express": "4.17.1",
