@@ -852,20 +852,25 @@ const loadYoutubeInfo = async function (youtubeId, singleFormat) {
       youtubeSkipDashManifest: true,
       referer: process.env.PUBLIC_SERVER_URL,
     });
+    // logger.info(`youtubeDownload result:\n${JSON.stringify(result, null, 4)}`);
 
     let height = 0;
     let selectedFormat = {};
+    let mp3Format = undefined;
     let formats = [];
     const targetHeight = 360;
     for (let i = 0; i < result.formats.length; i++) {
       const format = result.formats[i];
-      if (format.ext === "mp4" && format.acodec !== "none") {
+      if ((format.ext === "m4a" || format.ext === "mp3" || format.ext === "mp4") && format.acodec !== "none") {
         const validFormat = {
           height: format.height,
           url: format.url,
           format: format.format,
         };
         formats.push(validFormat);
+        if (format.height == null) {
+          mp3Format = validFormat;
+        }
         if (
           (height < targetHeight && format.height > height) ||
           (height > targetHeight && format.height < height)
@@ -881,6 +886,9 @@ const loadYoutubeInfo = async function (youtubeId, singleFormat) {
 
     if (singleFormat) {
       formats = [selectedFormat];
+      if (mp3Format) {
+        formats.push(mp3Format);
+      }
       logger.info(`single format:\n${JSON.stringify(formats, null, 4)}`);
     }
 
