@@ -5,6 +5,7 @@ import express from "express";
 import dotEnv from "dotenv-flow";
 import setupParseServer from "./lib/setupParseServer.cjs";
 import { installProxyMiddlewares } from "amtf-proxy";
+import cors from "cors";
 
 const NODE_ENV_DEV = "development";
 const nodeEnv = process.env.NODE_ENV || NODE_ENV_DEV;
@@ -13,6 +14,7 @@ process.env.NODE_ENV = nodeEnv;
 dotEnv.config();
 
 const app = express();
+app.use(cors());
 setupParseServer(app, nodeEnv);
 
 const pathnameList = ["/online"];
