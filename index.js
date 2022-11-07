@@ -3,6 +3,7 @@
 
 import express from "express";
 import dotEnv from "dotenv-flow";
+import compression from "compression";
 import setupParseServer from "./lib/setupParseServer.cjs";
 import { installProxyMiddlewares } from "amtf-proxy";
 import cors from "cors";
@@ -15,6 +16,10 @@ dotEnv.config();
 
 const app = express();
 app.use(cors());
+
+// Compress all HTTP responses
+app.use(compression());
+
 setupParseServer(app, nodeEnv);
 
 const pathnameList = ["/online"];
