@@ -4,9 +4,10 @@
 import express from "express";
 import dotEnv from "dotenv-flow";
 import compression from "compression";
+import cors from "cors";
+
 import setupParseServer from "./lib/setupParseServer.cjs";
 import { installProxyMiddlewares } from "amtf-proxy";
-import cors from "cors";
 
 const NODE_ENV_DEV = "development";
 const nodeEnv = process.env.NODE_ENV || NODE_ENV_DEV;
