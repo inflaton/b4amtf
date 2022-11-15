@@ -620,23 +620,25 @@ const remindClassReporting = async function (classId) {
   return { lastWeek, lastWeekForEmail, emailsSent };
 };
 
-const updateUserStudyRecord = async function (user, pathname, userStudyRecord) {
+const updateUserStudyRecord = async function (user, pathname, userStudyRecord, submoduleId = undefined) {
   requireAuth(user);
 
   const result = {};
   const userId = user.id;
 
   logger.info(
-    `updateUserStudyRecord - userId: ${userId} pathname: ${pathname}`
+    `updateUserStudyRecord - userId: ${userId} pathname: ${pathname} submoduleId: ${submoduleId}`
   );
 
-  pathname = pathname.replace("/amitabha", "");
-  let query = new Parse.Query("Submodule");
-  query.contains("url", pathname);
-  const submodule = await query.first();
+  if (!submoduleId) {
+    pathname = pathname.replace("/amitabha", "");
+    let query = new Parse.Query("Submodule");
+    query.contains("url", pathname);
+    const submodule = await query.first();
+    submoduleId = submodule._getId();
+  }
 
-  if (submodule) {
-    const submoduleId = submodule._getId();
+  if (submoduleId) {
     query = new Parse.Query("UserStudyRecord");
 
     query.equalTo("userId", userId);
