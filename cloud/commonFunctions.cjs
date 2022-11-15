@@ -317,9 +317,8 @@ const prepareReportGeneration = async function (
     const satElements = toLocalDateString(saturday).split(re);
     const sunElements = toLocalDateString(sunday).split(re);
     const newCsvHeader = isPractice
-      ? `${monElements[1]}${
-          monElements[0] !== sunElements[0] ? monElements[0].toUpperCase() : ""
-        }-${sunElements[1]}${sunElements[0].toUpperCase()}`
+      ? `${monElements[1]}${monElements[0] !== sunElements[0] ? monElements[0].toUpperCase() : ""
+      }-${sunElements[1]}${sunElements[0].toUpperCase()}`
       : `${satElements[1]}-${satElements[0].toUpperCase()}`;
 
     if (!lastMonth) {
@@ -509,8 +508,7 @@ const loadStudentAttendanceV2 = async function (userId, classSession) {
   }
 
   logger.info(
-    `loadStudentAttendanceV2 - userId: ${userId} sessionId: ${
-      classSession ? classSession._getId() : undefined
+    `loadStudentAttendanceV2 - userId: ${userId} sessionId: ${classSession ? classSession._getId() : undefined
     } result: ${JSON.stringify(result)}`
   );
 
@@ -629,7 +627,7 @@ const updateUserStudyRecord = async function (user, pathname, userStudyRecord) {
   const userId = user.id;
 
   logger.info(
-    `updateUserStudyRecord - userId: ${userId} pathname: ${pathname}}`
+    `updateUserStudyRecord - userId: ${userId} pathname: ${pathname}`
   );
 
   pathname = pathname.replace("/amitabha", "");
@@ -658,6 +656,7 @@ const updateUserStudyRecord = async function (user, pathname, userStudyRecord) {
 
     result.lineage = parseUserStudyRecord.get("lineage");
     result.textbook = parseUserStudyRecord.get("textbook");
+    result.submoduleId = submoduleId;
   }
 
   return result;
