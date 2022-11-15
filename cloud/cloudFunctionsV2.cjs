@@ -270,12 +270,12 @@ const loadDashboardV2 = async function (parseUser, forStudent) {
   const userId = parseUser ? parseUser._getId() : undefined;
   const dashboard = forStudent
     ? {
-        enrolledClasses: [],
-        newClasses: [],
-      }
+      enrolledClasses: [],
+      newClasses: [],
+    }
     : {
-        classes: [],
-      };
+      classes: [],
+    };
 
   let query = new Parse.Query("Class");
   query.notEqualTo("deactivated", true);
@@ -447,9 +447,9 @@ const loadUserModuleInfo = async function (userId, moduleId, forDashboard) {
         submodule.studyRecord =
           userModuleInfo.submodules.length === 0 && latestSubmoduleStudyRecord
             ? {
-                lineage: latestSubmoduleStudyRecord.get("lineage"),
-                textbook: latestSubmoduleStudyRecord.get("textbook"),
-              }
+              lineage: latestSubmoduleStudyRecord.get("lineage"),
+              textbook: latestSubmoduleStudyRecord.get("textbook"),
+            }
             : {};
         userModuleInfo.submodules.push(submodule);
 
@@ -662,8 +662,7 @@ Parse.Cloud.define(
     const timeEnd = new Date().getTime();
     result.duration = timeEnd - timeStart;
     logger.info(
-      `home:loadDashboardsV2 - userId: ${user._getId()} duration: ${
-        result.duration
+      `home:loadDashboardsV2 - userId: ${user._getId()} duration: ${result.duration
       }`
     );
     return result;
@@ -691,7 +690,8 @@ Parse.Cloud.define(
     const result = await commonFunctions.updateUserStudyRecord(
       user,
       submodule.url,
-      userStudyRecord
+      userStudyRecord,
+      submodule.id
     );
 
     let userModuleInfo;
