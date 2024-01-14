@@ -23,6 +23,8 @@ app.use(compression());
 
 setupParseServer(app, nodeEnv);
 
+app.use('/baoyan', express.static('baoyan'))
+
 const pathnameList = ["/online"];
 installProxyMiddlewares(app, pathnameList);
 
