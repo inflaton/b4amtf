@@ -21,7 +21,7 @@ app.use(cors());
 // Compress all HTTP responses
 app.use(compression());
 
-setupParseServer(app, nodeEnv);
+await setupParseServer(app, nodeEnv);
 
 app.use('/baoyan', express.static('baoyan'))
 
