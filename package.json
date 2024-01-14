@@ -1,13 +1,13 @@
 {
   "name": "b4amtf",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Backend for Amitabha",
   "main": "index.js",
   "type": "module",
   "license": "ISC",
   "dependencies": {
     "@babel/core": "^7.15.5",
-    "amtf-proxy": "^1.3.5",
+    "amtf-proxy": "^1.4.0",
     "axios": "^0.21.4",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
@@ -29,7 +29,7 @@
     "watch": "babel-watch index.js"
   },
   "engines": {
-    "node": "14.x"
+    "node": ">=14.x"
   },
   "exports": {
     ".": "./lib/setupParseServer.cjs",
